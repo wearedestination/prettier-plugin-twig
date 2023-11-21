@@ -6,44 +6,23 @@ As Liquid and Twig are quite similar, we were able to make minimal changes to th
 
 [Prettier](https://prettier.io) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
 
-![demo](https://github.com/Shopify/prettier-plugin-liquid/blob/main/docs/demo.gif?raw=true)
-
-## Can this be used in production?
-
-Yes! It's also available in the [Online Store Code Editor](https://shopify.dev/themes/tools/code-editor#formatting-theme-code).
-
 ## Installation
 
 ```bash
 # with npm
-npm install --save-dev prettier @shopify/prettier-plugin-liquid
+npm install --save-dev prettier @destination/prettier-plugin-twig
 
 # with yarn
-yarn add --dev prettier @shopify/prettier-plugin-liquid
+yarn add --dev prettier @destination/prettier-plugin-twig
 ```
 
 For Prettier version 3 and above, the plugin must also be declared in the [configuration](https://prettier.io/docs/en/configuration.html).
 
 ```
 {
-  "plugins": ["@shopify/prettier-plugin-liquid"]
+  "plugins": ["@destination/prettier-plugin-twig"]
 }
 ```
-
-## Usage
-
-See our [Wiki](https://github.com/Shopify/prettier-plugin-liquid/wiki) pages on the subject:
-
-- [In the terminal](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-in-your-terminal) (with Node.js)
-- [In the browser](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-in-the-browser)
-- [In your editor](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-in-your-editor)
-- [In a CI workflow](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-in-CI)
-- [As a pre-commit hook](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-as-a-pre-commit-hook)
-- [With a bundler](https://github.com/shopify/prettier-plugin-liquid/wiki/Use-it-with-a-bundler)
-
-## Playground
-
-You can try it out in your browser in the [playground](https://shopify.github.io/prettier-plugin-liquid/).
 
 ## Configuration
 

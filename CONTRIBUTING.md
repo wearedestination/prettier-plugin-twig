@@ -1,4 +1,4 @@
-# Contributing to @shopify/prettier-plugin-liquid
+# Contributing to @destination/prettier-plugin-twig
 
 Requirements:
 
@@ -6,7 +6,7 @@ Requirements:
 - Yarn
 
 ```
-git clone git@github.com:Shopify/prettier-plugin-liquid.git
+git clone git@github.com:wearedestination/prettier-plugin-twig.git
 yarn
 yarn test
 ```
@@ -27,7 +27,7 @@ The source code for this plugin is in TypeScript.
 - PR should include any carrier specific documentation explaining how it works.
 - Code should be generic and reusable.
 
-## Formating
+## Formatting
 
 This plugin uses prettier to format its TypeScript codebase. To format your code before a commit, run the following command:
 
@@ -82,7 +82,7 @@ prettier --plugin . --write path/to/files.liquid
 
 ## How to contribute
 
-1. Fork it ( https://github.com/Shopify/prettier-plugin-liquid/fork )
+1. Fork it ( https://github.com/wearedestination/prettier-plugin-twig/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
