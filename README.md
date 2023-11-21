@@ -1,29 +1,8 @@
-> **Warning**
->
-> This project has been absorbed by and moved to [Shopify/theme-tools](https://github.com/Shopify/theme-tools).
+# Twig Prettier Plugin
 
-<h1 align="center" style="position: relative;" >
-  <br>
-    <img src="https://github.com/Shopify/theme-check-vscode/blob/main/images/shopify_glyph.png?raw=true" alt="logo" width="141" height="160">
-  <br>
-  Shopify Liquid Prettier Plugin
-  <br>
-</h1>
+This is a fork of the excellent [Shopify Liquid Prettier Plugin](https://github.com/Shopify/prettier-plugin-liquid).
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/@shopify/prettier-plugin-liquid"><img src="https://img.shields.io/npm/v/@shopify/prettier-plugin-liquid.svg?sanitize=true" alt="Version"></a>
-  <a href="https://github.com/Shopify/prettier-plugin-liquid/blob/main/LICENSE.md"><img src="https://img.shields.io/npm/l/@shopify/prettier-plugin-liquid.svg?sanitize=true" alt="License"></a>
-  <a href="https://github.com/Shopify/prettier-plugin-liquid-prototype/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Shopify/prettier-plugin-liquid-prototype/actions/workflows/ci.yml/badge.svg"></a>
-  <!--
-    <a href="https://npmcharts.com/compare/@shopify/prettier-plugin-liquid?minimal=true"><img src="https://img.shields.io/npm/dm/@shopify/prettier-plugin-liquid.svg?sanitize=true" alt="Downloads"></a>
-  -->
-</p>
-
-<div align="center">
-
-🗣 [Slack](https://join.slack.com/t/shopifypartners/shared_invite/zt-sdr2quab-mGkzkttZ2hnVm0~8noSyvw) | 💬 [Discussions](https://github.com/Shopify/prettier-plugin-liquid/discussions) | 📝 [Changelog](./CHANGELOG.md)
-
-</div>
+As Liquid and Twig are quite similar, we were able to make minimal changes to the original plugin to support Twig.
 
 [Prettier](https://prettier.io) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
 
