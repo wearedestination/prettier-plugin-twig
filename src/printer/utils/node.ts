@@ -157,13 +157,13 @@ export function isPrettierIgnoreHtmlNode(
   );
 }
 
-export function isPrettierIgnoreLiquidNode(
+export function isPrettierIgnoreTwigNode(
   node: LiquidHtmlNode | undefined,
 ): node is LiquidTag {
   return (
     !!node &&
     node.type === NodeTypes.LiquidTag &&
-    node.name === '' &&
+    node.name === 'twig' &&
     /^\s*prettier-ignore(?=\s|$)/m.test(node.markup)
   );
 }
@@ -171,7 +171,7 @@ export function isPrettierIgnoreLiquidNode(
 export function isPrettierIgnoreNode(
   node: LiquidHtmlNode | undefined,
 ): node is HtmlComment | LiquidTag {
-  return isPrettierIgnoreLiquidNode(node) || isPrettierIgnoreHtmlNode(node);
+  return isPrettierIgnoreTwigNode(node) || isPrettierIgnoreHtmlNode(node);
 }
 
 export function hasPrettierIgnore(node: LiquidHtmlNode) {
@@ -213,7 +213,7 @@ export function isPrettierIgnoreAttributeNode(
     return getPrettierIgnoreAttributeCommentData(node.body);
   }
 
-  if (node.type === NodeTypes.LiquidTag && node.name === '#') {
+  if (node.type === NodeTypes.LiquidTag && node.name === 'twig') {
     return getPrettierIgnoreAttributeCommentData(node.markup);
   }
 

@@ -560,13 +560,13 @@ describe('Unit: Stage 2 (AST)', () => {
         ast = toAST(`{# #}`);
         expectPath(ast, 'children.0').to.exist;
         expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-        expectPath(ast, 'children.0.name').to.eql('#');
+        expectPath(ast, 'children.0.name').to.eql('twig');
         expectPath(ast, 'children.0.markup').to.eql('');
 
         ast = toAST(`{# hello world #}`);
         expectPath(ast, 'children.0').to.exist;
         expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-        expectPath(ast, 'children.0.name').to.eql('#');
+        expectPath(ast, 'children.0.name').to.eql('twig');
         expectPath(ast, 'children.0.markup').to.eql('hello world');
       });
 

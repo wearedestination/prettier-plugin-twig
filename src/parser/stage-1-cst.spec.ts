@@ -1078,7 +1078,7 @@ describe('Unit: Stage 1 (CST)', () => {
     it('should parse inline comments', () => {
       cst = toLiquidHtmlCST('{# hello world \n # hi #}');
       expectPath(cst, '0.type').to.eql('LiquidTag');
-      expectPath(cst, '0.name').to.eql('');
+      expectPath(cst, '0.name').to.eql('twig');
       expectPath(cst, '0.markup').to.eql('hello world \n # hi');
     });
   });
@@ -1109,7 +1109,7 @@ describe('Unit: Stage 1 (CST)', () => {
     it('should parse inline comments', () => {
       cst = toLiquidCST('{# hello world \n # hi #}');
       expectPath(cst, '0.type').to.eql('LiquidTag');
-      expectPath(cst, '0.name').to.eql('#');
+      expectPath(cst, '0.name').to.eql('twig');
       expectPath(cst, '0.markup').to.eql('hello world \n # hi');
     });
   });
