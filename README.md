@@ -43,7 +43,7 @@ Prettier for Twig supports the following options.
 
 ## Ignoring code
 
-We support the following comments (either via HTML or Liquid comments):
+We support the following comments (either via HTML or Twig comments):
 
 - `prettier-ignore`
 - `prettier-ignore-attribute`
@@ -52,10 +52,10 @@ We support the following comments (either via HTML or Liquid comments):
 They target the next node in the tree. Unparseable code can't be ignored and will throw an error.
 
 ```liquid
-{% # prettier-ignore %}
+{# prettier-ignore #}
 <div         class="x"       >hello world</div            >
 
-{% # prettier-ignore-attributes %}
+{# prettier-ignore-attributes #}
 <div
   [[#if Condition]]
     class="a b c"
