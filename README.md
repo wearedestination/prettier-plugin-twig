@@ -26,20 +26,20 @@ For Prettier version 3 and above, the plugin must also be declared in the [confi
 
 ## Configuration
 
-Prettier for Liquid supports the following options.
+Prettier for Twig supports the following options.
 
-| Name                        | Default   | Description                                                                                                                                                              |
-| ------------------          | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `printWidth`                | `120`     | Changed from Prettier's default (`80`) ([see prettier docs](https://prettier.io/docs/en/options.html#print-width))                                                       |
-| `tabWidth`                  | `2`       | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#tab-width))                                                                            |
-| `useTabs`                   | `false`   | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#tabs))                                                                                 |
-| `singleQuote`               | `false`   | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#quotes))                                                                               |
-| `bracketSameLine`           | `false`   | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#bracket-line))                                                                         |
-| `liquidSingleQuote`         | `true`    | Use single quotes instead of double quotes in Liquid tag and objects (since v0.2.0).                                                                                     |
-| `embeddedSingleQuote`       | `true`    | Use single quotes instead of double quotes in embedded languages (JavaScript, CSS, TypeScript inside `<script>`, `<style>` or Liquid equivalent) (since v0.4.0).         |
-| `htmlWhitespaceSensitivity` | `css`     | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#html-whitespace-sensitivity))                                                          |
-| `singleLineLinkTags`        | `false`   | If set to `true`, will print `<link>` tags on a single line to remove clutter                                                                                            |
-| `indentSchema`              | `false`   | If set to `true`, will indent the contents of the `{% schema %}` tag                                                                                                     |
+| Name                        | Default | Description                                                                                                                                                    |
+|-----------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `printWidth`                | `120`   | Changed from Prettier's default (`80`) ([see prettier docs](https://prettier.io/docs/en/options.html#print-width))                                             |
+| `tabWidth`                  | `2`     | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#tab-width))                                                                  |
+| `useTabs`                   | `false` | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#tabs))                                                                       |
+| `singleQuote`               | `false` | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#quotes))                                                                     |
+| `bracketSameLine`           | `false` | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#bracket-line))                                                               |
+| `twigSingleQuote`           | `true`  | Use single quotes instead of double quotes in Twig tag and objects (since v0.2.0).                                                                             |
+| `embeddedSingleQuote`       | `true`  | Use single quotes instead of double quotes in embedded languages (JavaScript, CSS, TypeScript inside `<script>`, `<style>` or Twig equivalent) (since v0.4.0). |
+| `htmlWhitespaceSensitivity` | `css`   | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#html-whitespace-sensitivity))                                                |
+| `singleLineLinkTags`        | `false` | If set to `true`, will print `<link>` tags on a single line to remove clutter                                                                                  |
+| `indentSchema`              | `false` | If set to `true`, will indent the contents of the `{% schema %}` tag                                                                                           |
 
 ## Ignoring code
 
@@ -62,10 +62,6 @@ They target the next node in the tree. Unparseable code can't be ignored and wil
   [[/if ]]
 ></div>
 ```
-
-## Known issues
-
-Take a look at our [known issues](./KNOWN_ISSUES.md) and [open issues](https://github.com/Shopify/prettier-plugin-liquid/issues).
 
 ## Contributing
 
