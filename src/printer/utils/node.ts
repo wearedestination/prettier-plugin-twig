@@ -163,7 +163,7 @@ export function isPrettierIgnoreLiquidNode(
   return (
     !!node &&
     node.type === NodeTypes.LiquidTag &&
-    node.name === '#' &&
+    node.name === '' &&
     /^\s*prettier-ignore(?=\s|$)/m.test(node.markup)
   );
 }

@@ -183,7 +183,7 @@ Liquid <: Helpers {
   liquidDrop = "{{" "-"? space* liquidDropCases "-"? "}}"
   liquidDropCases = liquidVariable | liquidDropBaseCase
   liquidDropBaseCase = anyExceptStar<("-}}" | "}}")>
-  liquidInlineComment = "{%" "-"? space* "#" space? tagMarkup "-"? "%}"
+  liquidInlineComment = "{#" #(anyExceptStar<"#}"> "#}")
 
   liquidRawTag =
     | liquidRawTagImpl<"raw">
@@ -265,6 +265,7 @@ Liquid <: Helpers {
   identifier = variableSegment "?"?
 
   tagMarkup = anyExceptStar<("-%}"| "%}")>
+  twigTagMarkup = anyExceptStar<("-#}"| "#}")>
 
   liquidTagName =
     letter (alnum | "_")*

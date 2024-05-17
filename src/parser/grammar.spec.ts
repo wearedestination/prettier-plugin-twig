@@ -31,7 +31,7 @@ describe('Unit: liquidHtmlGrammar', () => {
         expectMatchSucceeded(`{%- liquid-%}`).to.be.true;
         expectMatchSucceeded(`{%- schema-%}{% endschema %}`).to.be.true;
         expectMatchSucceeded(`{%- form 'form-type'-%}`).to.be.true;
-        expectMatchSucceeded(`{%- # a comment -%}`).to.be.true;
+        expectMatchSucceeded(`{# a comment #}`).to.be.true;
         expectMatchSucceeded(`{%- javascript -%}{% endjavascript %}`).to.be.true;
         expectMatchSucceeded(`{%- include 'layout' -%}`).to.be.true;
         expectMatchSucceeded(`{%- layout 'full-width' -%}`).to.be.true;

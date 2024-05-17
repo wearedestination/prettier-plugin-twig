@@ -339,6 +339,18 @@ export function printLiquidBlockStart(
     ]);
   }
 
+  if (node.name === 'twig') {
+    return group([
+      '{#',
+      whitespaceStart,
+      ' ',
+      indent([join(hardline, reindent(lines, true))]),
+      ' ',
+      whitespaceEnd,
+      '#}',
+    ]);
+  }
+
   if (lines.length > 1) {
     return group([
       '{%',
