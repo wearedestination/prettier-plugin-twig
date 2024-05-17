@@ -340,11 +340,22 @@ export function printLiquidBlockStart(
   }
 
   if (node.name === 'twig') {
+    if (lines.length > 1) {
+      return group([
+        '{#',
+        whitespaceStart,
+        indent([hardline, join(hardline, lines.map(trim))]),
+        hardline,
+        whitespaceEnd,
+        '#}',
+      ]);
+    }
+
+    const markup = node.markup;
     return group([
       '{#',
       whitespaceStart,
-      ' ',
-      indent([join(hardline, reindent(lines, true))]),
+      markup ? ` ${markup}` : '',
       ' ',
       whitespaceEnd,
       '#}',

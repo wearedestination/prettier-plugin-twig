@@ -647,9 +647,9 @@ function toCST<T>(
     liquidInlineComment: {
       type: ConcreteNodeTypes.LiquidTag,
       name: 'twig',
-      markup: markup(1),
-      whitespaceStart: 2,
-      whitespaceEnd: null,
+      markup: markupTrimEnd(3),
+      whitespaceStart: 1,
+      whitespaceEnd: 4,
       locStart,
       locEnd,
       source,
