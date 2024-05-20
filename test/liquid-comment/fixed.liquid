@@ -30,20 +30,18 @@ It should support nested empty comments (pt 2)
 {% endcomment %}
 
 It should support inline comments
-{% # hello world %}
+{# hello world #}
 
 It should maintain paragraphs, but not indentation
-{%
-  # hello world how are you doing today?
-  # this keeps on going
-  # and it's looking weird
-  # Here's a list of things:
-  #  - one
-  #  - two
-  #  - three
+{#
+  hello world how are you doing today?
+  this keeps on going
+  and it's looking weird
+  Here's a list of things:
+  - one
+  - two
+  - three
 
-  # Here's a new paragraph
-  # oh hi!
-  #
-  # Here's another one with a # before the paragraph
-%}
+  Here's a new paragraph
+  oh hi!
+#}

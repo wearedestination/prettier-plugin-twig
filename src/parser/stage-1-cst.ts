@@ -59,6 +59,8 @@ export enum ConcreteNodeTypes {
   LiquidTag = 'LiquidTag',
   LiquidTagOpen = 'LiquidTagOpen',
   LiquidTagClose = 'LiquidTagClose',
+  TwigCommentOpen = 'TwigCommentOpen',
+  TwigCommentClose = 'TwigCommentClose',
   TextNode = 'TextNode',
   YAMLFrontmatter = 'YAMLFrontmatter',
 
@@ -644,10 +646,10 @@ function toCST<T>(
     },
     liquidInlineComment: {
       type: ConcreteNodeTypes.LiquidTag,
-      name: 3,
-      markup: markupTrimEnd(5),
+      name: 'twig',
+      markup: markupTrimEnd(3),
       whitespaceStart: 1,
-      whitespaceEnd: 6,
+      whitespaceEnd: 4,
       locStart,
       locEnd,
       source,
