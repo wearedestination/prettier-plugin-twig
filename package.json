@@ -1,6 +1,6 @@
 {
   "name": "@destination/prettier-plugin-twig",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Prettier Twig/HTML plugin by Destination",
   "repository": {
     "type": "git",
