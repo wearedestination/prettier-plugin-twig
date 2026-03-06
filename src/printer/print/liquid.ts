@@ -16,7 +16,7 @@ import {
   LiquidStatement,
 } from '~/types';
 import { isBranchedTag } from '~/parser/stage-2-ast';
-import { assertNever } from '~/utils';
+import { assertNever, getTwigSingleQuote } from '~/utils';
 
 import {
   getWhitespaceTrim,
@@ -76,8 +76,11 @@ export function printLiquidDrop(
     ]);
   }
 
-  // Transform quotes in base case markup based on liquidSingleQuote option
-  const markup = transformStringQuotes(node.markup, options.liquidSingleQuote);
+  // Transform quotes in base case markup based on twigSingleQuote option
+  const markup = transformStringQuotes(
+    node.markup,
+    getTwigSingleQuote(options),
+  );
 
   // This should probably be better than this but it'll do for now.
   const lines = markupLines(markup);
@@ -271,7 +274,7 @@ function printLiquidStatement(
   const node = path.getValue();
   const transformedMarkup = transformStringQuotes(
     node.markup,
-    options.liquidSingleQuote,
+    getTwigSingleQuote(options),
   );
   const shouldSkipLeadingSpace =
     transformedMarkup.trim() === '' ||
@@ -349,10 +352,10 @@ export function printLiquidBlockStart(
     ]);
   }
 
-  // Transform quotes in base case markup based on liquidSingleQuote option
+  // Transform quotes in base case markup based on twigSingleQuote option
   const transformedMarkup = transformStringQuotes(
     node.markup,
-    options.liquidSingleQuote,
+    getTwigSingleQuote(options),
   );
   const lines = markupLines(transformedMarkup);
 

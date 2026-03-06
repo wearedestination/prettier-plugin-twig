@@ -124,7 +124,8 @@ export type LiquidAstPath = AstPath<LiquidHtmlNode>;
 export type LiquidParserOptions = ParserOptions<LiquidHtmlNode> & {
   singleAttributePerLine: boolean;
   singleLineLinkTags: boolean;
-  liquidSingleQuote: boolean;
+  twigSingleQuote: boolean;
+  liquidSingleQuote?: boolean;
   embeddedSingleQuote: boolean;
   indentSchema: boolean;
 };
