@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        node-version: [24.x, 25.x]
+        node-version: [22.x, 24.x]
         prettier-major: [2, 3]
 
     name: OS ${{ matrix.os }} / NodeJS ${{ matrix.node-version }} / Prettier ${{ matrix.prettier-major }}
