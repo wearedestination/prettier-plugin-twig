@@ -34,6 +34,7 @@ import {
   shouldPreserveContent,
   FORCE_FLAT_GROUP_ID,
   last,
+  transformStringQuotes,
 } from '~/printer/utils';
 
 import { printChildren } from '~/printer/print/children';
@@ -47,7 +48,7 @@ const { replaceEndOfLine } = doc.utils as any;
 
 export function printLiquidDrop(
   path: LiquidAstPath,
-  _options: LiquidParserOptions,
+  options: LiquidParserOptions,
   print: LiquidPrinter,
   { leadingSpaceGroupId, trailingSpaceGroupId }: LiquidPrinterArgs,
 ) {
@@ -75,8 +76,11 @@ export function printLiquidDrop(
     ]);
   }
 
+  // Transform quotes in base case markup based on liquidSingleQuote option
+  const markup = transformStringQuotes(node.markup, options.liquidSingleQuote);
+
   // This should probably be better than this but it'll do for now.
-  const lines = markupLines(node.markup);
+  const lines = markupLines(markup);
   if (lines.length > 1) {
     return group([
       '{{',
@@ -88,15 +92,7 @@ export function printLiquidDrop(
     ]);
   }
 
-  return group([
-    '{{',
-    whitespaceStart,
-    ' ',
-    node.markup,
-    ' ',
-    whitespaceEnd,
-    '}}',
-  ]);
+  return group(['{{', whitespaceStart, ' ', markup, ' ', whitespaceEnd, '}}']);
 }
 
 function printNamedLiquidBlockStart(
@@ -267,18 +263,22 @@ function printNamedLiquidBlockStart(
 
 function printLiquidStatement(
   path: AstPath<Extract<LiquidTag, { name: string; markup: string }>>,
-  _options: LiquidParserOptions,
+  options: LiquidParserOptions,
   _print: LiquidPrinter,
   _args: LiquidPrinterArgs,
 ): Doc {
   const node = path.getValue();
+  const transformedMarkup = transformStringQuotes(
+    node.markup,
+    options.liquidSingleQuote,
+  );
   const shouldSkipLeadingSpace =
-    node.markup.trim() === '' ||
-    (node.name === '#' && node.markup.startsWith('#'));
+    transformedMarkup.trim() === '' ||
+    (node.name === '#' && transformedMarkup.startsWith('#'));
   return doc.utils.removeLines([
     node.name,
     shouldSkipLeadingSpace ? '' : ' ',
-    node.markup,
+    transformedMarkup,
   ]);
 }
 
@@ -324,7 +324,36 @@ export function printLiquidBlockStart(
     );
   }
 
-  const lines = markupLines(node.markup);
+  // For Twig comments ({# ... #}), don't transform quotes - comments should be preserved as-is
+  if (node.name === 'twig') {
+    const lines = markupLines(node.markup);
+    if (lines.length > 1) {
+      return group([
+        '{#',
+        whitespaceStart,
+        indent([hardline, join(hardline, lines.map(trim))]),
+        hardline,
+        whitespaceEnd,
+        '#}',
+      ]);
+    }
+
+    return group([
+      '{#',
+      whitespaceStart,
+      node.markup ? ` ${node.markup}` : '',
+      ' ',
+      whitespaceEnd,
+      '#}',
+    ]);
+  }
+
+  // Transform quotes in base case markup based on liquidSingleQuote option
+  const transformedMarkup = transformStringQuotes(
+    node.markup,
+    options.liquidSingleQuote,
+  );
+  const lines = markupLines(transformedMarkup);
 
   if (node.name === 'liquid') {
     return group([
@@ -339,29 +368,6 @@ export function printLiquidBlockStart(
     ]);
   }
 
-  if (node.name === 'twig') {
-    if (lines.length > 1) {
-      return group([
-        '{#',
-        whitespaceStart,
-        indent([hardline, join(hardline, lines.map(trim))]),
-        hardline,
-        whitespaceEnd,
-        '#}',
-      ]);
-    }
-
-    const markup = node.markup;
-    return group([
-      '{#',
-      whitespaceStart,
-      markup ? ` ${markup}` : '',
-      ' ',
-      whitespaceEnd,
-      '#}',
-    ]);
-  }
-
   if (lines.length > 1) {
     return group([
       '{%',
@@ -373,13 +379,12 @@ export function printLiquidBlockStart(
     ]);
   }
 
-  const markup = node.markup;
   return group([
     '{%',
     whitespaceStart,
     ' ',
     node.name,
-    markup ? ` ${markup}` : '',
+    transformedMarkup ? ` ${transformedMarkup}` : '',
     ' ',
     whitespaceEnd,
     '%}',
