@@ -11,12 +11,12 @@ It should convert double quotes to single quotes in tag base case
 It should handle multiple arguments with quotes
 {{ some_function("arg1", "arg2") }}
 
-It should convert to double quotes when liquidSingleQuote is false
-liquidSingleQuote: false
+It should convert to double quotes when twigSingleQuote is false
+twigSingleQuote: false
 {{ stimulus_controller('controller-name') }}
 
-It should keep single quotes if string contains double quotes when liquidSingleQuote is false
-liquidSingleQuote: false
+It should keep single quotes if string contains double quotes when twigSingleQuote is false
+twigSingleQuote: false
 {{ stimulus_controller('say "hello"') }}
 
 It should not modify HTML attributes within Twig comments

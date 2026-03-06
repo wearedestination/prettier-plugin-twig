@@ -29,7 +29,7 @@ import {
   nonTraversableProperties,
   AstPath,
 } from '~/types';
-import { assertNever } from '~/utils';
+import { assertNever, getTwigSingleQuote } from '~/utils';
 
 import { preprocess } from '~/printer/print-preprocess';
 import {
@@ -524,7 +524,7 @@ function printNode(
     }
 
     case NodeTypes.String: {
-      const preferredQuote = options.liquidSingleQuote ? `'` : `"`;
+      const preferredQuote = getTwigSingleQuote(options) ? `'` : `"`;
       const valueHasQuotes = node.value.includes(preferredQuote);
       const quote = valueHasQuotes
         ? oppositeQuotes[preferredQuote]

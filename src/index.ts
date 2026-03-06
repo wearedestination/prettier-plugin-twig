@@ -15,12 +15,20 @@ const languages: SupportLanguage[] = [
 ];
 
 const options: SupportOptions = {
-  liquidSingleQuote: {
+  twigSingleQuote: {
     type: 'boolean',
     category: 'LIQUID',
     default: true,
     description:
-      'Use single quotes instead of double quotes in Liquid tags and objects.',
+      'Use single quotes instead of double quotes in Twig tags and objects.',
+    since: '0.2.0',
+  },
+  liquidSingleQuote: {
+    type: 'boolean',
+    category: 'LIQUID',
+    default: undefined,
+    description:
+      'Deprecated: Use twigSingleQuote instead. Use single quotes instead of double quotes in Twig tags and objects.',
     since: '0.2.0',
   },
   embeddedSingleQuote: {

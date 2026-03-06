@@ -3,7 +3,7 @@ const options = {
 };
 
 const numInputs = ['printWidth'];
-const boolInputs = ['liquidSingleQuote', 'singleQuote'];
+const boolInputs = ['twigSingleQuote', 'singleQuote'];
 const selectInputs = ['htmlWhitespaceSensitivity'];
 
 const waitFor = (pred) => {

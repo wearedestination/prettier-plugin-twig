@@ -67,7 +67,7 @@ export function hasMoreThanOneNewLineBetweenNodes(
 }
 
 /**
- * Transforms quotes in base case markup strings based on the liquidSingleQuote option.
+ * Transforms quotes in base case markup strings based on the twigSingleQuote option.
  * This handles cases where the parser falls back to storing markup as a raw string
  * (e.g., Twig function calls like `stimulus_controller('controller-name')`).
  *
@@ -78,13 +78,13 @@ export function hasMoreThanOneNewLineBetweenNodes(
  */
 export function transformStringQuotes(
   markup: string,
-  liquidSingleQuote: boolean,
+  twigSingleQuote: boolean,
 ): string {
-  const preferredQuote = liquidSingleQuote ? "'" : '"';
+  const preferredQuote = twigSingleQuote ? "'" : '"';
 
   // Match strings with the non-preferred quote style
   // This regex matches quoted strings, being careful about escapes
-  const stringRegex = liquidSingleQuote
+  const stringRegex = twigSingleQuote
     ? /"([^"\\]|\\.)*"/g // Match double-quoted strings
     : /'([^'\\]|\\.)*'/g; // Match single-quoted strings
 

@@ -26,3 +26,34 @@ export function dropLast<T>(n: number, xs: readonly T[]) {
   }
   return result;
 }
+
+let hasWarnedLiquidSingleQuote = false;
+
+/**
+ * Resets the deprecation warning state. Only used for testing.
+ * @internal
+ */
+export function resetTwigSingleQuoteWarning(): void {
+  hasWarnedLiquidSingleQuote = false;
+}
+
+/**
+ * Gets the effective twigSingleQuote value, supporting the deprecated liquidSingleQuote option.
+ * Shows a deprecation warning once if liquidSingleQuote is used.
+ */
+export function getTwigSingleQuote(options: {
+  twigSingleQuote: boolean;
+  liquidSingleQuote?: boolean;
+}): boolean {
+  // If liquidSingleQuote is explicitly set (not undefined), use it with deprecation warning
+  if (options.liquidSingleQuote !== undefined) {
+    if (!hasWarnedLiquidSingleQuote) {
+      hasWarnedLiquidSingleQuote = true;
+      console.warn(
+        '[prettier-plugin-twig] The "liquidSingleQuote" option is deprecated. Please use "twigSingleQuote" instead.',
+      );
+    }
+    return options.liquidSingleQuote;
+  }
+  return options.twigSingleQuote;
+}
