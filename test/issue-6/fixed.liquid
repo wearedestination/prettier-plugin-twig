@@ -4,3 +4,12 @@ It should not remove the "if" from "else if" tags
 {% else if condition2 %}
   Condition2 is truthy
 {% endif %}
+
+It should format elseif tags
+{% if condition1 %}
+  Condition1 is truthy
+{% elseif condition2 %}
+  Condition2 is truthy
+{% else %}
+  Something else
+{% endif %}

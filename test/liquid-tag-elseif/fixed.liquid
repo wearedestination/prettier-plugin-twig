@@ -1,0 +1,31 @@
+It should correctly format elseif statements at same level as if/else
+{% if condition1 %}
+  Condition1 is truthy
+{% elseif condition2 %}
+  Condition2 is truthy
+{% else %}
+  Something else
+{% endif %}
+
+It should handle multiple elseif branches
+{% if condition1 %}
+  Result 1
+{% elseif condition2 %}
+  Result 2
+{% elseif condition3 %}
+  Result 3
+{% else %}
+  Default result
+{% endif %}
+
+It should handle complex conditions in elseif
+{% if x > 10 %}
+  Large
+{% elseif x > 5 and x <= 10 %}
+  Medium
+{% elseif x > 0 %}
+  Small
+{% else %}
+  Zero or negative
+{% endif %}
+
