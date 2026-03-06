@@ -370,10 +370,11 @@ export function printLiquidBlockStart(
   }
 
   if (lines.length > 1) {
+    const reindentedLines = reindent(lines, true);
     return group([
       '{%',
       whitespaceStart,
-      indent([hardline, node.name, ' ', join(hardline, lines.map(trim))]),
+      indent([hardline, node.name, ' ', join(hardline, reindentedLines)]),
       hardline,
       whitespaceEnd,
       '%}',
