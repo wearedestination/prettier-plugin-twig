@@ -1,0 +1,21 @@
+It should convert double quotes to single quotes in Twig function calls (base case)
+{{ stimulus_controller("controller-name") }}
+<div class="class name"></div>
+
+It should keep double quotes if the string contains single quotes
+{{ stimulus_controller("it's a name") }}
+
+It should convert double quotes to single quotes in tag base case
+{% set foo = "bar" %}
+
+It should handle multiple arguments with quotes
+{{ some_function("arg1", "arg2") }}
+
+It should convert to double quotes when liquidSingleQuote is false
+liquidSingleQuote: false
+{{ stimulus_controller('controller-name') }}
+
+It should keep single quotes if string contains double quotes when liquidSingleQuote is false
+liquidSingleQuote: false
+{{ stimulus_controller('say "hello"') }}
+
