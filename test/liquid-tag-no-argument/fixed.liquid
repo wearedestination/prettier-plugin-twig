@@ -10,8 +10,8 @@ It should strip arguments from javascript tags
 {% javascript %}
 {% endjavascript %}
 
-It should strip arguments from else tags
-{% if cond %}{% else %}{% endif %}
+It should preserve arguments from else tags to avoid silent code changes
+{% if cond %}{% else what %}{% endif %}
 
 It should strip arguments from break tags
 {% break %}

@@ -214,6 +214,7 @@ function printNamedLiquidBlockStart(
     }
 
     case NamedTags.if:
+    case NamedTags.elseif:
     case NamedTags.elsif:
     case NamedTags.unless: {
       const trailingWhitespace = [
