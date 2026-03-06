@@ -51,7 +51,6 @@ export const TAGS_WITHOUT_MARKUP = [
   'style',
   'schema',
   'javascript',
-  'else',
   'break',
   'continue',
   'comment',

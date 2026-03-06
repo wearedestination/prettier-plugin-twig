@@ -12,9 +12,18 @@ printWidth: 1
   hello
 {% endif %}
 
-It should strip extraneous args
+It should preserve extraneous args to avoid silent code changes
 printWidth: 1
 {% if false %}
-{% else %}
+{% else huh?? %}
   hello
 {% endif %}
+
+It should preserve 'else if' syntax to avoid removing expressions
+printWidth: 80
+{% if condition1 %}
+  Condition1 is truthy
+{% else if condition2 %}
+  Condition2 is truthy
+{% endif %}
+
