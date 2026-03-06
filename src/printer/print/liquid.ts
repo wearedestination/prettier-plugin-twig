@@ -324,6 +324,30 @@ export function printLiquidBlockStart(
     );
   }
 
+  // For Twig comments ({# ... #}), don't transform quotes - comments should be preserved as-is
+  if (node.name === 'twig') {
+    const lines = markupLines(node.markup);
+    if (lines.length > 1) {
+      return group([
+        '{#',
+        whitespaceStart,
+        indent([hardline, join(hardline, lines.map(trim))]),
+        hardline,
+        whitespaceEnd,
+        '#}',
+      ]);
+    }
+
+    return group([
+      '{#',
+      whitespaceStart,
+      node.markup ? ` ${node.markup}` : '',
+      ' ',
+      whitespaceEnd,
+      '#}',
+    ]);
+  }
+
   // Transform quotes in base case markup based on liquidSingleQuote option
   const transformedMarkup = transformStringQuotes(
     node.markup,
@@ -341,28 +365,6 @@ export function printLiquidBlockStart(
       hardline,
       whitespaceEnd,
       '%}',
-    ]);
-  }
-
-  if (node.name === 'twig') {
-    if (lines.length > 1) {
-      return group([
-        '{#',
-        whitespaceStart,
-        indent([hardline, join(hardline, lines.map(trim))]),
-        hardline,
-        whitespaceEnd,
-        '#}',
-      ]);
-    }
-
-    return group([
-      '{#',
-      whitespaceStart,
-      transformedMarkup ? ` ${transformedMarkup}` : '',
-      ' ',
-      whitespaceEnd,
-      '#}',
     ]);
   }
 

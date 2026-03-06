@@ -19,3 +19,5 @@ It should keep single quotes if string contains double quotes when liquidSingleQ
 liquidSingleQuote: false
 {{ stimulus_controller('say "hello"') }}
 
+It should not modify HTML attributes within Twig comments
+{# <div class="should-not-change"></div> #}
