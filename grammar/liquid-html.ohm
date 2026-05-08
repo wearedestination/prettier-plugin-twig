@@ -32,7 +32,8 @@ Helpers {
 Liquid <: Helpers {
   Node := (liquidNode | TextNode)*
   openControl := "{{" | "{%"
-  endOfTagName = &("-%}" | "-}}" | "%}" | "}}")
+  endOfTagName = &("-%}" | "-}}" | "~%}" | "~}}" | "%}" | "}}")
+  whitespaceControl = "-" | "~"
   endOfVarName = ~identifierCharacter
   endOfIdentifier = endOfTagName | endOfVarName
 
@@ -82,13 +83,13 @@ Liquid <: Helpers {
     | liquidTagOpenStrict
     | liquidTagOpenBaseCase
 
-  liquidTagClose = "{%" "-"? space* "end" blockName space* tagMarkup "-"? "%}"
+  liquidTagClose = "{%" whitespaceControl? space* "end" blockName space* tagMarkup whitespaceControl? "%}"
 
   // These two are the same but transformed differently
   liquidTagRule<name, markup> =
-    "{%" "-"? space* (name endOfIdentifier) space* markup "-"? "%}"
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* markup whitespaceControl? "%}"
   liquidTagOpenRule<name, markup> =
-    "{%" "-"? space* (name endOfIdentifier) space* markup "-"? "%}"
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* markup whitespaceControl? "%}"
 
   liquidTagBaseCase = liquidTagRule<liquidTagName, tagMarkup>
 
@@ -182,10 +183,10 @@ Liquid <: Helpers {
   liquidTagOpenPaginateMarkup =
     liquidExpression space+ "by" space+ liquidExpression argumentSeparatorOptionalComma tagArguments space*
 
-  liquidDrop = "{{" "-"? space* liquidDropCases "-"? "}}"
+  liquidDrop = "{{" whitespaceControl? space* liquidDropCases whitespaceControl? "}}"
   liquidDropCases = liquidVariable | liquidDropBaseCase
-  liquidDropBaseCase = anyExceptStar<("-}}" | "}}")>
-  liquidInlineComment = "{#" "-"? space? twigTagMarkup "-"? "#}"
+  liquidDropBaseCase = anyExceptStar<("-}}" | "~}}" | "}}")>
+  liquidInlineComment = "{#" whitespaceControl? space? twigTagMarkup whitespaceControl? "#}"
 
   liquidRawTag =
     | liquidRawTagImpl<"raw">
@@ -194,18 +195,18 @@ Liquid <: Helpers {
     | liquidRawTagImpl<"stylesheet">
     | liquidRawTagImpl<"style">
   liquidRawTagImpl<name> =
-    "{%" "-"? space* (name endOfIdentifier) space* tagMarkup "-"? "%}"
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
     anyExceptStar<liquidRawTagClose<name>>
-    "{%" "-"? space* "end" (name endOfIdentifier) space* "-"? "%}"
+    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
   liquidRawTagClose<name> =
-    "{%" "-"? space* "end" (name endOfIdentifier) space* "-"? "%}"
+    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
 
   liquidBlockComment =
     commentBlockStart
       (liquidBlockComment | anyExceptPlus<(commentBlockStart | commentBlockEnd)>)*
     commentBlockEnd
-  commentBlockStart = "{%" "-"? space* ("comment"    endOfIdentifier) space* tagMarkup "-"? "%}"
-  commentBlockEnd   = "{%" "-"? space* ("endcomment" endOfIdentifier) space* tagMarkup "-"? "%}"
+  commentBlockStart = "{%" whitespaceControl? space* ("comment"    endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
+  commentBlockEnd   = "{%" whitespaceControl? space* ("endcomment" endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
 
   // In order for the grammar to "fallback" to the base case, this
   // rule must pass if and only if we support what we parse. This
@@ -215,7 +216,7 @@ Liquid <: Helpers {
   // instead of falling back to the other rule:
   // {{ 'string' | some_filter }}
   liquidVariable = liquidExpression liquidFilter* space* &liquidStatementEnd
-  liquidStatementEnd = ("-}}" | "}}" | "-%}" | "%}")
+  liquidStatementEnd = ("-}}" | "~}}" | "}}" | "-%}" | "~%}" | "%}")
 
   liquidExpression =
     | liquidString
@@ -266,8 +267,8 @@ Liquid <: Helpers {
   variableSegmentAsLookup = variableSegment
   identifier = variableSegment "?"?
 
-  tagMarkup = anyExceptStar<("-%}"| "%}")>
-  twigTagMarkup = anyExceptStar<("-#}"| "#}")>
+  tagMarkup = anyExceptStar<("-%}"| "~%}" | "%}")>
+  twigTagMarkup = anyExceptStar<("-#}"| "~#}" | "#}")>
 
   liquidTagName =
     letter (alnum | "_")*

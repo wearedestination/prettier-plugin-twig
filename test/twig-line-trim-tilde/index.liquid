@@ -1,0 +1,17 @@
+It should preserve the ~ line-trim modifier on the left of a drop
+<div>{{~ some_var }}</div>
+
+It should preserve the ~ line-trim modifier on the right of a drop
+<div>{{ some_var ~}}</div>
+
+It should preserve the ~ line-trim modifier on both sides of a drop
+<div>{{~ some_var ~}}</div>
+
+It should preserve mixed - and ~ trim modifiers on a drop
+<div>{{- some_var ~}}{{~ other -}}</div>
+
+It should preserve the ~ line-trim modifier on tags
+{%~ if foo ~%}bar{%~ endif ~%}
+
+It should preserve mixed - and ~ trim modifiers on tags
+{%- if foo ~%}bar{%~ endif -%}

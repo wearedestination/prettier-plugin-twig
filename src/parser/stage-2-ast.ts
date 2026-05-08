@@ -174,10 +174,10 @@ export interface LiquidRawTag extends ASTNode<NodeTypes.LiquidRawTag> {
    * String body of the tag. So we don't try to parse it.
    */
   body: RawMarkup;
-  whitespaceStart: '-' | '';
-  whitespaceEnd: '-' | '';
-  delimiterWhitespaceStart: '-' | '';
-  delimiterWhitespaceEnd: '-' | '';
+  whitespaceStart: '-' | '~' | '';
+  whitespaceEnd: '-' | '~' | '';
+  delimiterWhitespaceStart: '-' | '~' | '';
+  delimiterWhitespaceEnd: '-' | '~' | '';
   blockStartPosition: Position;
   blockEndPosition: Position;
 }
@@ -216,10 +216,10 @@ export interface LiquidTagNode<Name, Markup>
    */
   markup: Markup;
   children?: LiquidHtmlNode[];
-  whitespaceStart: '-' | '';
-  whitespaceEnd: '-' | '';
-  delimiterWhitespaceStart?: '-' | '';
-  delimiterWhitespaceEnd?: '-' | '';
+  whitespaceStart: '-' | '~' | '';
+  whitespaceEnd: '-' | '~' | '';
+  delimiterWhitespaceStart?: '-' | '~' | '';
+  delimiterWhitespaceEnd?: '-' | '~' | '';
   blockStartPosition: Position;
   blockEndPosition?: Position;
 }
@@ -354,8 +354,8 @@ interface LiquidBranchNode<Name, Markup>
    */
   markup: Markup;
   children: LiquidHtmlNode[];
-  whitespaceStart: '-' | '';
-  whitespaceEnd: '-' | '';
+  whitespaceStart: '-' | '~' | '';
+  whitespaceEnd: '-' | '~' | '';
   blockStartPosition: Position;
 }
 
@@ -368,8 +368,8 @@ export interface LiquidDrop extends ASTNode<NodeTypes.LiquidDrop> {
    * The body of the drop. May contain filters. Not trimmed.
    */
   markup: string | LiquidVariable;
-  whitespaceStart: '-' | '';
-  whitespaceEnd: '-' | '';
+  whitespaceStart: '-' | '~' | '';
+  whitespaceEnd: '-' | '~' | '';
 }
 
 interface LiquidVariable extends ASTNode<NodeTypes.LiquidVariable> {
