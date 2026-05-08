@@ -34,8 +34,14 @@ export function getWhitespaceTrim(
   needsWhitespaceStrippingOnBreak: boolean | undefined,
   groupIds?: symbol | symbol[],
 ): Doc {
+  // Preserve an explicit '~' (Twig line-trim modifier) — only inject '-' when
+  // the user didn't already write a whitespace control character.
+  const onBreak =
+    needsWhitespaceStrippingOnBreak && !currWhitespaceTrim
+      ? '-'
+      : currWhitespaceTrim;
   return ifBreakChain(
-    needsWhitespaceStrippingOnBreak ? '-' : currWhitespaceTrim,
+    onBreak,
     currWhitespaceTrim,
     Array.isArray(groupIds) ? groupIds : [groupIds],
   );

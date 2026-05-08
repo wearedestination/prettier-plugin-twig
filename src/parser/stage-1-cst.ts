@@ -174,8 +174,8 @@ export type ConcreteLiquidNode =
   | ConcreteLiquidDrop;
 
 interface ConcreteBasicLiquidNode<T> extends ConcreteBasicNode<T> {
-  whitespaceStart: null | '-';
-  whitespaceEnd: null | '-';
+  whitespaceStart: null | '-' | '~';
+  whitespaceEnd: null | '-' | '~';
 }
 
 export interface ConcreteLiquidRawTag
@@ -183,8 +183,8 @@ export interface ConcreteLiquidRawTag
   name: string;
   body: string;
   markup: string;
-  delimiterWhitespaceStart: null | '-';
-  delimiterWhitespaceEnd: null | '-';
+  delimiterWhitespaceStart: null | '-' | '~';
+  delimiterWhitespaceEnd: null | '-' | '~';
   blockStartLocStart: number;
   blockStartLocEnd: number;
   blockEndLocStart: number;
