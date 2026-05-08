@@ -1,8 +1,11 @@
-# Twig Prettier Plugin
+# Twig HTML Prettier Plugin
 
 This is a fork of the excellent [Shopify Liquid Prettier Plugin](https://github.com/Shopify/prettier-plugin-liquid).
 
 As Liquid and Twig are quite similar, we were able to make minimal changes to the original plugin to support Twig.
+
+This plugin is intended for HTML Twig templates (e.g. `.html.twig`). Twig can be used to template other file types (`.js.twig`, `.xml.twig`, etc.) but those are not a goal of this plugin. 
+It may happen to work for some of them (such as `.xml.twig`), but that is incidental and not officially supported.
 
 [Prettier](https://prettier.io) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
 
