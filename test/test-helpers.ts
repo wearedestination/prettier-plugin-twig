@@ -40,8 +40,8 @@ export function assertFormattedEqualsFixed(
   dirname: string,
   options: Partial<LiquidParserOptions> = {},
 ) {
-  const source = readFile(dirname, 'index.liquid');
-  const expectedResults = readFile(dirname, 'fixed.liquid');
+  const source = readFile(dirname, 'index.html.twig');
+  const expectedResults = readFile(dirname, 'fixed.html.twig');
   const trimEnd = (s: string) => s.trimEnd();
 
   const chunks = source.split(PARAGRAPH_SPLITTER).map(trimEnd);
@@ -68,8 +68,8 @@ export function assertFormattedEqualsFixed(
         // Improve the stack trace so that it points to the fixed file instead
         // of this test-helper file. Might make navigation smoother.
         if ((e as any).stack as any) {
-          const fixedUrl = path.join(dirname, 'fixed.liquid');
-          const inputUrl = path.join(dirname, 'index.liquid');
+          const fixedUrl = path.join(dirname, 'fixed.html.twig');
+          const inputUrl = path.join(dirname, 'index.html.twig');
           const testUrl = path.join(dirname, 'index.spec.ts');
           const fixedOffset = lineOffset(expectedResults, expected);
           const fixedLoc = diffLoc(expected, actual, fixedOffset).join(':');
@@ -77,8 +77,8 @@ export function assertFormattedEqualsFixed(
           (e as any).stack = ((e as any).stack as string).replace(
             /^(\s+)at Context.test \(.*:\d+:\d+\)/im,
             [
-              `$1at fixed.liquid (${fixedUrl}:${fixedLoc})`,
-              `$1at input.liquid (${inputUrl}:${inputLine}:0)`,
+              `$1at fixed.html.twig (${fixedUrl}:${fixedLoc})`,
+              `$1at input.html.twig (${inputUrl}:${inputLine}:0)`,
               `$1at assertFormattedEqualsFixed (${testUrl}:5:6)`,
             ].join('\n'),
           );
