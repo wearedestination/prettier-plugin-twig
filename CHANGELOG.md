@@ -1,3 +1,8 @@
+2.0.1 / 2026-05-08
+==================
+* Added support for Twig tilde whitespace control operator (`~`) [#11](https://github.com/wearedestination/prettier-plugin-twig/pull/11)
+
+
 2.0.0 / 2026-03-06
 ==================
 
