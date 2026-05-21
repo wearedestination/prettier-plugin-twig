@@ -19,7 +19,7 @@ npm install --save-dev prettier @destination/prettier-plugin-twig
 pnpm add --save-dev prettier @destination/prettier-plugin-twig
 ```
 
-For Prettier version 3 and above, the plugin must also be declared in the [configuration](https://prettier.io/docs/en/configuration.html).
+The plugin must be declared in the [configuration](https://prettier.io/docs/en/configuration.html).
 
 ```
 {

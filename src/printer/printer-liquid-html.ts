@@ -1,6 +1,5 @@
 import { doc, Doc } from 'prettier';
-import type { Printer as Printer2 } from 'prettier';
-import type { Printer as Printer3 } from 'prettier3';
+import type { Printer } from 'prettier';
 import {
   AttrDoubleQuoted,
   AttrEmpty,
@@ -51,7 +50,7 @@ import {
   printLiquidTag,
 } from '~/printer/print/liquid';
 import { printChildren } from '~/printer/print/children';
-import { embed2, embed3 } from '~/printer/embed';
+import { embed } from '~/printer/embed';
 import { RawMarkupKinds } from '~/parser';
 import { getConditionalComment } from '~/parser/conditional-comment';
 
@@ -590,25 +589,11 @@ function printNode(
   }
 }
 
-export const printerLiquidHtml2: Printer2<LiquidHtmlNode> & {
+export const printerLiquidHtml: Printer<LiquidHtmlNode> & {
   preprocess: any;
 } & { getVisitorKeys: any } = {
   print: printNode as any,
-  embed: embed2,
-  preprocess,
-  getVisitorKeys(node: any, nonTraversableKeys: Set<string>) {
-    return Object.keys(node).filter(
-      (key) =>
-        !nonTraversableKeys.has(key) && !nonTraversableProperties.has(key),
-    );
-  },
-};
-
-export const printerLiquidHtml3: Printer3<LiquidHtmlNode> & {
-  preprocess: any;
-} & { getVisitorKeys: any } = {
-  print: printNode as any,
-  embed: embed3,
+  embed,
   preprocess,
   getVisitorKeys(node: any, nonTraversableKeys: Set<string>) {
     return Object.keys(node).filter(

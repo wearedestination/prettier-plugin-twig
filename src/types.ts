@@ -1,17 +1,33 @@
-import { Doc } from 'prettier';
-import type { AstPath as AstPath2 } from 'prettier';
-import type {
-  AstPath as AstPath3,
-  ParserOptions as ParserOptions3,
-} from 'prettier3';
+import { Doc, ParserOptions as PrettierParserOptions } from 'prettier';
 import * as AST from '~/parser/stage-2-ast';
 
-export type CommonKeys<T1, T2> = Extract<keyof T1, keyof T2>;
-export type AstPath<T = any> = Pick<
-  AstPath2<T>,
-  CommonKeys<AstPath2<T>, AstPath3<T>>
->;
-export type ParserOptions<T = any> = ParserOptions3<T>;
+// Prettier 3's AstPath has strict, property-aware overloads for `call`/`map`/`each`
+// that don't fit our generic printer. We define a relaxed shape with the methods we
+// actually use, so the printer can pass property names freely.
+export interface AstPath<T = any> {
+  stack: any[];
+  getValue(): T;
+  getNode(count?: number): T | null;
+  getParentNode(count?: number): T | null;
+  getName(): PropertyKey | null;
+  match(
+    ...predicates: Array<
+      (node: any, name: string | null, number: number | null) => boolean
+    >
+  ): boolean;
+  call<U>(callback: (path: any) => U, ...names: PropertyKey[]): U;
+  callParent<U>(callback: (path: any) => U, count?: number): U;
+  each(
+    callback: (path: any, index: number, value: any) => void,
+    ...names: PropertyKey[]
+  ): void;
+  map<U>(
+    callback: (path: any, index: number, value: any) => U,
+    ...names: PropertyKey[]
+  ): U[];
+}
+
+export type ParserOptions<T = any> = PrettierParserOptions<T>;
 
 export interface Position {
   start: number;
