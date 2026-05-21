@@ -1,8 +1,9 @@
 const options = {
   printWidth: 120,
+  tabWidth: 2,
 };
 
-const numInputs = ['printWidth'];
+const numInputs = ['printWidth', 'tabWidth'];
 const boolInputs = ['twigSingleQuote', 'singleQuote'];
 const selectInputs = ['htmlWhitespaceSensitivity'];
 

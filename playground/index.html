@@ -21,7 +21,7 @@
     }
 
     const unpkgUrl =
-      'https://www.unpkg.com/@shopify/prettier-plugin-liquid@v1.2.2/standalone.js';
+      'https://www.unpkg.com/@destination/prettier-plugin-twig@v2.0.1/standalone.js';
     if (/localhost|127.0.0.1/.test(window.location.href)) {
       const script = getScript('assets/standalone.js');
       script.onerror = () => {
@@ -35,25 +35,20 @@
     }
   </script>
   <script src="assets/playground.js" defer></script>
-  <title>Prettier Liquid Plugin - Playground</title>
+  <title>Prettier Twig/HTML Plugin - Playground</title>
 </head>
 
 <body>
   <header>
     <span href="/" class="logo-wrapper">
-      <img
-        class="logo"
-        src="https://github.com/Shopify/theme-check-vscode/blob/main/images/shopify_glyph.png?raw=true"
-        alt=""
-      />
       <h1>
-        Prettier Plugin Liquid
+        Prettier Plugin Twig/HTML
         <span id="version"
           ><a
-            href="https://github.com/shopify/prettier-plugin-liquid/blob/main/CHANGELOG.md"
+            href="https://github.com/wearedestination/prettier-plugin-twig/blob/main/CHANGELOG.md"
             target="_blank"
             rel="noreferrer noopener"
-            >v1.2.2</a
+            >v2.0.1</a
           ></span
         >
       </h1>
@@ -62,10 +57,10 @@
       <!-- Place this tag where you want the button to render. -->
       <a
         class="github-button"
-        href="https://github.com/shopify/prettier-plugin-liquid"
+        href="https://github.com/wearedestination/prettier-plugin-twig"
         data-size="large"
         data-show-count="true"
-        aria-label="Star shopify/prettier-plugin-liquid on GitHub"
+        aria-label="Star wearedestination/prettier-plugin-twig on GitHub"
         >Star</a
       >
     </span>
@@ -94,6 +89,24 @@
                 value="120"
               />
             </label>
+            <label title="Number of spaces per indentation level.">
+              --tab-width
+              <input
+                id="tabWidthRange"
+                type="range"
+                min="1"
+                max="8"
+                step="1"
+                value="2"
+              />
+              <input
+                id="tabWidthNumber"
+                type="number"
+                min="1"
+                step="1"
+                value="2"
+              />
+            </label>
             <label
               title="How meaningful whitespace is handled between HTML nodes"
             >
@@ -120,16 +133,27 @@
         placeholder="Unformatted input"
         spellcheck="false"
       >
-&lt;ul&gt;{% for el in col %}&lt;li class=&quot;{% cycle &#039;odd&#039;, &#039;even&#039; %}&quot; id=&quot;el-{{ el.index }}&quot;&gt;{{ el.image }}&lt;/li&gt;{% endfor %}&lt;/ul&gt;
-
+{%
+set defaults = {
+    id: null,
+    class: &#039;card&#039;,
+    stimulus: {
+        controllers: {
+            target: &#039;card-target&#039;
+        }
+    }
+}
+%}
+&lt;body class=&quot;{% block body_class %}page--default{% endblock %}&quot; data-page=&quot;{% block page_id %}home{% endblock %}&quot;&gt;
 &lt;ul class=&quot;container&quot;&gt;
-{% for el in col %}&lt;li class=&quot;{% cycle &#039;odd&#039;, &#039;even&#039; %}&quot; id=&quot;something&quot; data-prop=&quot;some value&quot;&gt;
-  &lt;div class=&quot;item-container&quot;&gt;  &lt;label&gt;{{ el.value }}&lt;/label&gt;
-   {% assign alt = el.featured_image.alt | replace: &#039;vanilla&#039;, &#039;chocolate&#039; | upcase %}
-   {{ el.featured_image | image_url | image_tag }}
+{% for item in items %}&lt;li class=&quot;{{ loop.index is odd ? &#039;odd&#039; : &#039;even&#039; }}&quot; id=&quot;item-{{ loop.index }}&quot;   data-prop=&quot;some value&quot;&gt;
+  &lt;div class=&quot;item-container&quot;&gt;  &lt;label&gt;{{ item.value }}&lt;/label&gt;
+   {% set altText = item.featured_image.alt|replace({&#039;vanilla&#039;: &#039;chocolate&#039;})|upper %}
+{%~ if item.featured_image ~%}{{ item.featured_image|image_url|image_tag }}{%~ elseif item.placeholder ~%}{{ item.placeholder }}{%~ else ~%}no image{%~ endif ~%}
       &lt;/div&gt;
     &lt;/li&gt; {% endfor %}
 &lt;/ul&gt;
+&lt;/body&gt;
       </textarea>
       <div class="editor">
         <textarea
@@ -155,7 +179,7 @@
     <div class="bottom-bar-buttons bottom-bar-buttons-right">
       <a
         id="reportIssue"
-        href="https://github.com/shopify/prettier-plugin-liquid/issues/new"
+        href="https://github.com/wearedestination/prettier-plugin-twig/issues/new"
         target="_blank"
         rel="noopener noreferrer"
       >
