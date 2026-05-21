@@ -4,16 +4,16 @@ This project is a Prettier plugin for formatting Twig templates. It is a fork of
 
 ## Package Manager
 
-You must use `yarn` instead of `npm` for managing dependencies. To install dependencies, run:
+You must use `pnpm` instead of `npm` for managing dependencies. To install dependencies, run:
 
 ```bash
-yarn install
+pnpm install
 ```
 
-You must also use `yarn` for running scripts defined in `package.json`. For example, to run tests, use:
+You must also use `pnpm` for running scripts defined in `package.json`. For example, to run tests, use:
 
 ```bash
-yarn test
+pnpm test
 ```
 
 When testing changes in the CLI, use the `prettier2` and `prettier3` package.json scripts instead of using prettier directly.

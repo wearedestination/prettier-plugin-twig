@@ -21,25 +21,28 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install the packages
-        run: yarn install --frozen-lockfile --ignore-engines
+        run: pnpm install --frozen-lockfile
 
       - name: Build the code
-        run: yarn build
+        run: pnpm build
         env:
           NODE_ENV: production
 
       - name: Check formatting
-        run: yarn format:check
+        run: pnpm format:check
 
       - name: Run the unit tests
-        run: yarn test
+        run: pnpm test
 
       - name: Run the idempotence tests
-        run: yarn test:idempotence
+        run: pnpm test:idempotence

@@ -15,8 +15,8 @@ It may happen to work for some of them (such as `.xml.twig`), but that is incide
 # with npm
 npm install --save-dev prettier @destination/prettier-plugin-twig
 
-# with yarn
-yarn add --dev prettier @destination/prettier-plugin-twig
+# with pnpm
+pnpm add --save-dev prettier @destination/prettier-plugin-twig
 ```
 
 For Prettier version 3 and above, the plugin must also be declared in the [configuration](https://prettier.io/docs/en/configuration.html).

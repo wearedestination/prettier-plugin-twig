@@ -27,13 +27,13 @@
     "ThirdPartyNotices.txt"
   ],
   "scripts": {
-    "build": "yarn build:shims && yarn build:ts && yarn build:standalone",
+    "build": "pnpm build:shims && pnpm build:ts && pnpm build:standalone",
     "build:shims": "node build/shims.js",
     "build:standalone": "webpack -c webpack.config.js",
     "build:ts": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "coverage": "nyc yarn test",
-    "coverage:json": "nyc --reporter=json yarn test",
-    "coverage:lcov": "nyc --reporter=lcov yarn test",
+    "coverage": "nyc pnpm test",
+    "coverage:json": "nyc --reporter=json pnpm test",
+    "coverage:lcov": "nyc --reporter=lcov pnpm test",
     "debug": "node --inspect-brk node_modules/.bin/_mocha \"{src,test}/**/*.ts\"",
     "format": "scripts/relative-to-alias && prettier --write --ignore-unknown \"{src,test}/**/*.ts\"",
     "format:check": "prettier --check --ignore-unknown \"{src,test}/**/*.ts\"",
@@ -44,9 +44,9 @@
     "prettier2": "cross-env PRETTIER_MAJOR=2 scripts/prettier",
     "prettier3": "cross-env PRETTIER_MAJOR=3 scripts/prettier",
     "test": "mocha '{src,test}/**/*.spec.ts'",
-    "test:3": "cross-env PRETTIER_MAJOR=3 yarn test",
+    "test:3": "cross-env PRETTIER_MAJOR=3 pnpm test",
     "test:idempotence": "cross-env TEST_IDEMPOTENCE=true node_modules/.bin/mocha 'test/**/*.spec.ts'",
-    "test:idempotence:3": "cross-env PRETTIER_MAJOR=3 yarn test:idempotence",
+    "test:idempotence:3": "cross-env PRETTIER_MAJOR=3 pnpm test:idempotence",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -66,8 +66,9 @@
     "mocha": "^9.1.3",
     "module-alias": "^2.2.3",
     "nyc": "^15.1.0",
-    "prettier2": "npm:prettier@^2.6.1",
-    "prettier3": "npm:prettier@^3.0.0",
+    "prettier": "^2.6.1",
+    "prettier2": "npm:prettier@2.8.8",
+    "prettier3": "npm:prettier@3.0.0",
     "pretty-quick": "^3.1.3",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.4.0",
@@ -83,5 +84,5 @@
     "line-column": "^1.0.2",
     "ohm-js": "^16.3.0"
   },
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  "packageManager": "pnpm@11.1.3"
 }
