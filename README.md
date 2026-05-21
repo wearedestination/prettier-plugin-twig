@@ -60,9 +60,11 @@ They target the next node in the tree. Unparseable code can't be ignored and wil
 
 {# prettier-ignore-attributes #}
 <div
-  [[#if Condition]]
-    class="a b c"
-  [[/if ]]
+  x-data="{
+    open: false,
+    items: ['one', 'two', 'three']
+  }"
+  data-action="click->modal#open keydown.escape@window->modal#close"
 ></div>
 ```
 

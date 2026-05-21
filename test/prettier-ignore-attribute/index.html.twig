@@ -24,7 +24,17 @@ printWidth: 1
   [[/if ]]
 >hello</a>
 
-It should work with Liquid inline comments
+It should work with Twig inline comments
 printWidth: 1
 {# prettier-ignore-attribute #}
 <p (mouseup)=" wat " (mousedown)=" wat ">hello</p>
+
+It should preserve hand-formatted attributes like Alpine.js x-data
+{# prettier-ignore-attributes #}
+<div
+  x-data="{
+    open: false,
+    items: ['one', 'two', 'three']
+  }"
+  data-action="click->modal#open keydown.escape@window->modal#close"
+></div>

@@ -46,3 +46,13 @@ printWidth: 1
 >
   hello
 </p>
+
+It should preserve hand-formatted attributes like Alpine.js x-data
+{# prettier-ignore-attributes #}
+<div
+  x-data="{
+    open: false,
+    items: ['one', 'two', 'three']
+  }"
+  data-action="click->modal#open keydown.escape@window->modal#close"
+></div>
