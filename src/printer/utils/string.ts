@@ -71,10 +71,13 @@ export function hasMoreThanOneNewLineBetweenNodes(
  * This handles cases where the parser falls back to storing markup as a raw string
  * (e.g., Twig function calls like `stimulus_controller('controller-name')`).
  *
- * The function replaces quotes while being careful to:
- * - Not replace quotes that are escaped
- * - Not replace quotes inside strings that contain the target quote character
- * - Handle nested quotes properly
+ * Scans the markup left to right, tracking open-string state, so only
+ * top-level string literals of the non-preferred quote style are converted.
+ * A quote of the other style nested inside an open string is content, not a
+ * string literal, and must be left alone. A conversion is skipped when the
+ * string's content contains the preferred quote, a backslash escape, or
+ * `#{` interpolation — any of which would change the string's meaning under
+ * the new quote style (Twig evaluates `#{…}` only inside double quotes).
  */
 export function transformStringQuotes(
   markup: string,
@@ -82,23 +85,39 @@ export function transformStringQuotes(
 ): string {
   const preferredQuote = twigSingleQuote ? "'" : '"';
 
-  // Match strings with the non-preferred quote style
-  // This regex matches quoted strings, being careful about escapes
-  const stringRegex = twigSingleQuote
-    ? /"([^"\\]|\\.)*"/g // Match double-quoted strings
-    : /'([^'\\]|\\.)*'/g; // Match single-quoted strings
-
-  return markup.replace(stringRegex, (match) => {
-    // Get the content without the outer quotes
-    const content = match.slice(1, -1);
-
-    // If the content contains the preferred quote (unescaped), keep original quotes
-    // to avoid breaking the string
-    if (content.includes(preferredQuote)) {
-      return match;
+  let result = '';
+  let i = 0;
+  while (i < markup.length) {
+    const char = markup[i];
+    if (char !== "'" && char !== '"') {
+      result += char;
+      i++;
+      continue;
     }
 
-    // Replace the quotes
-    return preferredQuote + content + preferredQuote;
-  });
+    // Scan to the closing quote, honoring backslash escapes
+    let j = i + 1;
+    while (j < markup.length && markup[j] !== char) {
+      if (markup[j] === '\\') j++;
+      j++;
+    }
+
+    if (j >= markup.length) {
+      // Unterminated string: copy the rest verbatim
+      result += markup.slice(i);
+      break;
+    }
+
+    const content = markup.slice(i + 1, j);
+    const isConvertible =
+      char !== preferredQuote &&
+      !content.includes(preferredQuote) &&
+      !content.includes('\\') &&
+      !content.includes('#{');
+    result += isConvertible
+      ? preferredQuote + content + preferredQuote
+      : markup.slice(i, j + 1);
+    i = j + 1;
+  }
+  return result;
 }

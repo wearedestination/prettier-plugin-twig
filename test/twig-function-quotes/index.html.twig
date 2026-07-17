@@ -21,3 +21,29 @@ twigSingleQuote: false
 
 It should not modify HTML attributes within Twig comments
 {# <div class="should-not-change"></div> #}
+
+It should not convert quotes nested inside a string of the preferred style
+{% set a = 'say "hi"' %}
+
+It should not convert nested quotes in ternary expressions
+{{ x ? 'a="b"' }}
+
+It should not convert strings containing escapes
+{% set a = "say \"hi\"" %}
+
+It should still convert convertible strings next to nested-quote strings
+{{ foo("plain", 'say "hi"') }}
+
+It should not convert quotes nested inside a double-quoted string when twigSingleQuote is false
+twigSingleQuote: false
+{% set a = "say 'hi'" %}
+
+It should not convert double-quoted strings containing interpolation
+{% set key = "#{opt.name}:#{opt.value}" %}
+
+It should not convert single-quoted strings containing interpolation when twigSingleQuote is false
+twigSingleQuote: false
+{% set key = '#{literal}' %}
+
+It should still convert strings with a bare hash
+{% set a = "plain #tag" %}
