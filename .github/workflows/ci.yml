@@ -1,7 +1,10 @@
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 name: CI
 
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   lint:
@@ -43,3 +46,17 @@ jobs:
 
       - name: Run the idempotence tests
         run: pnpm test:idempotence
+
+  # Aggregate gate with a stable name for branch protection to require,
+  # so the matrix can change without updating the required-check config.
+  ci-success:
+    name: CI Success
+    if: always()
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any matrix job failed
+        if: needs.lint.result != 'success'
+        run: |
+          echo "lint matrix result: ${{ needs.lint.result }}"
+          exit 1
