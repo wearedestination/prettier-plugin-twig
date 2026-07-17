@@ -1,3 +1,15 @@
+3.0.0 / 2026-07-17
+==================
+
+## Breaking changes
+
+* Drop support for Prettier v2 — the plugin now requires `prettier@^3` [fea0c07](https://github.com/wearedestination/prettier-plugin-twig/commit/fea0c078ea484fece8c322d4f0f335bebc73c8e8)
+
+## Fixes
+
+* Fix `twigSingleQuote` silently corrupting quotes nested inside a string of the other style (producing invalid Twig) and disabling `#{…}` interpolation when converting `"#{…}"` to `'#{…}'` [#13](https://github.com/wearedestination/prettier-plugin-twig/pull/13)
+
+
 2.0.1 / 2026-05-08
 ==================
 * Added support for Twig tilde whitespace control operator (`~`) [#11](https://github.com/wearedestination/prettier-plugin-twig/pull/11)
