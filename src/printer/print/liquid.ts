@@ -212,10 +212,6 @@ function printNamedLiquidBlockStart(
       return tag(trailingWhitespace);
     }
 
-    case NamedTags.paginate: {
-      return tag(line);
-    }
-
     case NamedTags.if:
     case NamedTags.elseif:
     case NamedTags.elsif:

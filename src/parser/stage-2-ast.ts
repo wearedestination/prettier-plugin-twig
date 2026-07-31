@@ -63,7 +63,6 @@ import {
   ConcreteLiquidTagOpenNamed,
   ConcreteLiquidTagOpen,
   ConcreteLiquidArgument,
-  ConcretePaginateMarkup,
   ConcreteLiquidCondition,
   ConcreteLiquidComparison,
   ConcreteLiquidTagForMarkup,
@@ -105,7 +104,6 @@ export type LiquidHtmlNode =
   | CycleMarkup
   | ForMarkup
   | RenderMarkup
-  | PaginateMarkup
   | RawMarkup
   | RenderVariableExpression
   | LiquidLogicalExpression
@@ -123,7 +121,6 @@ export type LiquidAST =
   | CycleMarkup
   | ForMarkup
   | RenderMarkup
-  | PaginateMarkup
   | RawMarkup
   | RenderVariableExpression
   | LiquidLogicalExpression
@@ -197,7 +194,6 @@ export type LiquidTagNamed =
   | LiquidTagIncrement
   | LiquidTagLayout
   | LiquidTagLiquid
-  | LiquidTagPaginate
   | LiquidTagRender
   | LiquidTagSection
   | LiquidTagSections
@@ -295,14 +291,6 @@ export interface LiquidComparison extends ASTNode<NodeTypes.Comparison> {
   comparator: Comparators;
   left: LiquidConditionalExpression;
   right: LiquidConditionalExpression;
-}
-
-export interface LiquidTagPaginate
-  extends LiquidTagNode<NamedTags.paginate, PaginateMarkup> {}
-export interface PaginateMarkup extends ASTNode<NodeTypes.PaginateMarkup> {
-  collection: LiquidExpression;
-  pageSize: LiquidExpression;
-  args: LiquidNamedArgument[];
 }
 
 export interface LiquidTagRender
@@ -1170,15 +1158,6 @@ function toNamedLiquidTag(
       };
     }
 
-    case NamedTags.paginate: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toPaginateMarkup(node.markup),
-        children: [],
-      };
-    }
-
     case NamedTags.if:
     case NamedTags.unless: {
       return {
@@ -1295,17 +1274,6 @@ function toForMarkup(node: ConcreteLiquidTagForMarkup): ForMarkup {
     args: node.args.map(toNamedArgument),
     reversed: !!node.reversed,
     position: position(node),
-    source: node.source,
-  };
-}
-
-function toPaginateMarkup(node: ConcretePaginateMarkup): PaginateMarkup {
-  return {
-    type: NodeTypes.PaginateMarkup,
-    collection: toExpression(node.collection),
-    pageSize: toExpression(node.pageSize),
-    position: position(node),
-    args: node.args ? node.args.map(toNamedArgument) : [],
     source: node.source,
   };
 }

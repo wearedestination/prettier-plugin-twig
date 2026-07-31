@@ -76,7 +76,6 @@ Liquid <: Helpers {
     | liquidTagOpenFor
     | liquidTagOpenTablerow
     | liquidTagOpenIf
-    | liquidTagOpenPaginate
     | liquidTagOpenUnless
 
   liquidTagOpen =
@@ -179,10 +178,6 @@ Liquid <: Helpers {
     | "<")
     | ("contains" ~identifier)
 
-  liquidTagOpenPaginate = liquidTagOpenRule<"paginate", liquidTagOpenPaginateMarkup>
-  liquidTagOpenPaginateMarkup =
-    liquidExpression space+ "by" space+ liquidExpression argumentSeparatorOptionalComma tagArguments space*
-
   liquidDrop = "{{" whitespaceControl? space* liquidDropCases whitespaceControl? "}}"
   liquidDropCases = liquidVariable | liquidDropBaseCase
   liquidDropBaseCase = anyExceptStar<("-}}" | "~}}" | "}}")>
@@ -276,7 +271,6 @@ Liquid <: Helpers {
   blockName =
     // Shopify blocks
     ( "form"
-    | "paginate"
     // Base blocks
     | "capture"
     | "case"

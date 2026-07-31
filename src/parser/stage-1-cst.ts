@@ -79,7 +79,6 @@ export enum ConcreteNodeTypes {
   CycleMarkup = 'CycleMarkup',
   ForMarkup = 'ForMarkup',
   RenderMarkup = 'RenderMarkup',
-  PaginateMarkup = 'PaginateMarkup',
   RenderVariableExpression = 'RenderVariableExpression',
 }
 
@@ -201,7 +200,6 @@ export type ConcreteLiquidTagOpenNamed =
   | ConcreteLiquidTagOpenUnless
   | ConcreteLiquidTagOpenForm
   | ConcreteLiquidTagOpenFor
-  | ConcreteLiquidTagOpenPaginate
   | ConcreteLiquidTagOpenTablerow;
 
 export interface ConcreteLiquidTagOpenNode<Name, Markup>
@@ -270,19 +268,6 @@ export interface ConcreteLiquidTagOpenTablerow
     NamedTags.tablerow,
     ConcreteLiquidTagForMarkup
   > {}
-
-export interface ConcreteLiquidTagOpenPaginate
-  extends ConcreteLiquidTagOpenNode<
-    NamedTags.paginate,
-    ConcretePaginateMarkup
-  > {}
-
-export interface ConcretePaginateMarkup
-  extends ConcreteBasicNode<ConcreteNodeTypes.PaginateMarkup> {
-  collection: ConcreteLiquidExpression;
-  pageSize: ConcreteLiquidExpression;
-  args: ConcreteLiquidNamedArgument[] | null;
-}
 
 export interface ConcreteLiquidTagClose
   extends ConcreteBasicLiquidNode<ConcreteNodeTypes.LiquidTagClose> {
@@ -696,16 +681,6 @@ function toCST<T>(
     liquidTagBreak: 0,
     liquidTagContinue: 0,
     liquidTagOpenTablerow: 0,
-    liquidTagOpenPaginate: 0,
-    liquidTagOpenPaginateMarkup: {
-      type: ConcreteNodeTypes.PaginateMarkup,
-      collection: 0,
-      pageSize: 4,
-      args: 6,
-      locStart,
-      locEnd,
-      source,
-    },
     liquidTagOpenCase: 0,
     liquidTagOpenCaseMarkup: 0,
     liquidTagWhen: 0,

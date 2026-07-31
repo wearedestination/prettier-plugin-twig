@@ -407,28 +407,6 @@ function printNode(
       return doc;
     }
 
-    case NodeTypes.PaginateMarkup: {
-      const doc = [
-        path.call(print, 'collection'),
-        line,
-        'by ',
-        path.call(print, 'pageSize'),
-      ];
-
-      if (node.args.length > 0) {
-        doc.push([
-          ',',
-          line,
-          join(
-            [',', line],
-            path.map((p) => print(p), 'args'),
-          ),
-        ]);
-      }
-
-      return doc;
-    }
-
     case NodeTypes.RenderMarkup: {
       const snippet = path.call(print, 'snippet');
       const doc: Doc = [snippet];

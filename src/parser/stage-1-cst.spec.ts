@@ -396,46 +396,19 @@ describe('Unit: Stage 1 (CST)', () => {
           });
         });
 
-        it('should parse the paginate tag open markup as arguments', () => {
+        it('should not parse paginate as a block-opening tag', () => {
+          // Twig has no paired {% paginate %}. Craft uses it standalone, so it
+          // must fall through to a plain LiquidTag with unparsed markup.
           [
-            {
-              expression: `collection.products by 50`,
-              collection: { type: 'VariableLookup' },
-              pageSize: { type: 'Number' },
-            },
-            {
-              expression: `collection.products by setting.value`,
-              collection: { type: 'VariableLookup' },
-              pageSize: { type: 'VariableLookup' },
-            },
-            {
-              expression: `collection.products by setting.value window_size: 2`,
-              collection: { type: 'VariableLookup' },
-              pageSize: { type: 'VariableLookup' },
-              args: [{ type: 'Number' }],
-            },
-            {
-              expression: `collection.products by setting.value, window_size: 2`,
-              collection: { type: 'VariableLookup' },
-              pageSize: { type: 'VariableLookup' },
-              args: [{ type: 'Number' }],
-            },
-          ].forEach(({ expression, collection, pageSize, args }) => {
+            `query as pageEntries`,
+            `query as pageInfo, pageEntries`,
+            `craft.entries().section('blog').limit(10) as pageInfo, pageEntries`,
+          ].forEach((expression) => {
             cst = toCST(`{% paginate ${expression} -%}`);
-            expectPath(cst, '0.type').to.equal('LiquidTagOpen');
+            expectPath(cst, '0.type').to.equal('LiquidTag');
             expectPath(cst, '0.name').to.equal('paginate');
-            expectPath(cst, '0.markup.type').to.equal('PaginateMarkup');
-            expectPath(cst, '0.markup.collection.type').to.equal(collection.type);
-            expectPath(cst, '0.markup.pageSize.type').to.equal(pageSize.type);
-            if (args) {
-              expectPath(cst, '0.markup.args').to.have.lengthOf(args.length);
-              args.forEach((arg, i) => {
-                expectPath(cst, `0.markup.args.${i}.type`).to.equal('NamedArgument');
-                expectPath(cst, `0.markup.args.${i}.value.type`).to.equal(arg.type);
-              });
-            } else {
-              expectPath(cst, '0.markup.args').to.have.lengthOf(0);
-            }
+            expectPath(cst, '0.markup').to.equal(expression);
+            expectPath(cst, '0.whitespaceEnd').to.equal('-');
           });
         });
 

@@ -132,7 +132,6 @@ function getCssDisplay(
     case NodeTypes.AssignMarkup:
     case NodeTypes.CycleMarkup:
     case NodeTypes.ForMarkup:
-    case NodeTypes.PaginateMarkup:
     case NodeTypes.RenderMarkup:
     case NodeTypes.RenderVariableExpression:
     case NodeTypes.LogicalExpression:
@@ -222,7 +221,6 @@ function getNodeCssStyleWhiteSpace(node: AugmentedNode<WithSiblings>): string {
     case NodeTypes.AssignMarkup:
     case NodeTypes.CycleMarkup:
     case NodeTypes.ForMarkup:
-    case NodeTypes.PaginateMarkup:
     case NodeTypes.RenderMarkup:
     case NodeTypes.RenderVariableExpression:
     case NodeTypes.LogicalExpression:
