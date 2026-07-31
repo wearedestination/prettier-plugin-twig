@@ -1,0 +1,53 @@
+It formats a standalone paginate tag with a pageInfo and a results variable
+{% paginate query as pageInfo, pageEntries %}
+
+It formats a standalone paginate tag with only a results variable
+{% paginate query as pageEntries %}
+
+It formats a paginate tag whose query is built inline
+{% paginate craft.entries().section('blog').limit(10) as pageInfo, pageEntries %}
+
+It does not require a closing tag, so following markup stays at the same level
+{% paginate query as pageInfo, pageEntries %}
+<div>{{ pageInfo.currentPage }}</div>
+
+It indents a nested paginate tag and does not swallow the closing element
+<div>
+{% paginate query as pageInfo, pageEntries %}
+</div>
+
+It keeps siblings of a nested paginate tag at the same depth
+<div>
+<h2>Articles</h2>
+{% paginate query as pageInfo, pageEntries %}
+{% for entry in pageEntries %}
+<article>{{ entry.title }}</article>
+{% endfor %}
+</div>
+
+It indents a paginate tag nested several elements deep
+<section>
+<div class="wrapper">
+<ul>
+{% paginate query as pageInfo, pageEntries %}
+<li>{{ pageInfo.currentPage }}</li>
+</ul>
+</div>
+</section>
+
+It preserves whitespace control operators
+{%- paginate query as pageEntries -%}
+{%~ paginate query as pageEntries ~%}
+
+It trims whitespace around the markup
+{%   paginate query as pageEntries   %}
+
+It formats a realistic Craft pagination block
+{% set query = craft.entries().section('blog').limit(10) %}
+{% paginate query as pageInfo, pageEntries %}
+{% for entry in pageEntries %}
+<article>
+<h1>{{ entry.title }}</h1>
+</article>
+{% endfor %}
+<a href="{{ pageInfo.nextUrl }}">Next</a>
