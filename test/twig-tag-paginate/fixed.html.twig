@@ -11,6 +11,30 @@ It does not require a closing tag, so following markup stays at the same level
 {% paginate query as pageInfo, pageEntries %}
 <div>{{ pageInfo.currentPage }}</div>
 
+It indents a nested paginate tag and does not swallow the closing element
+<div>
+  {% paginate query as pageInfo, pageEntries %}
+</div>
+
+It keeps siblings of a nested paginate tag at the same depth
+<div>
+  <h2>Articles</h2>
+  {% paginate query as pageInfo, pageEntries %}
+  {% for entry in pageEntries %}
+    <article>{{ entry.title }}</article>
+  {% endfor %}
+</div>
+
+It indents a paginate tag nested several elements deep
+<section>
+  <div class="wrapper">
+    <ul>
+      {% paginate query as pageInfo, pageEntries %}
+      <li>{{ pageInfo.currentPage }}</li>
+    </ul>
+  </div>
+</section>
+
 It preserves whitespace control operators
 {%- paginate query as pageEntries -%}
 {%~ paginate query as pageEntries ~%}
