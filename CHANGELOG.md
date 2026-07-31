@@ -1,3 +1,13 @@
+3.0.1 / 2026-07-31
+==================
+
+## Fixes
+
+* Treat `{% paginate %}` as a standalone tag, not a paired block — Craft CMS templates using `{% paginate query as pageInfo, entries %}` no longer fail to parse with `LiquidHTMLParsingError` [#17](https://github.com/wearedestination/prettier-plugin-twig/pull/17)
+
+  The Liquid-only `{% paginate … %}{% endpaginate %}` form is no longer parsed as a paired block; the two tags are now independent siblings. That form does not exist in Twig.
+
+
 3.0.0 / 2026-07-17
 ==================
 
