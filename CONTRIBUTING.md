@@ -37,24 +37,7 @@ pnpm format
 
 ## Testing
 
-This prettier plugin has two suites of tests: unit tests and integration tests.
-
-To run the unit tests:
-
-```bash
-pnpm test:unit
-```
-
-To run the integration tests (where we make sure an input file gets transformed into another after running prettier):
-
-```bash
-pnpm test:integration
-```
-
-To run the idempotence tests (where we make sure running prettier twice on an input file returns the same result):
-```bash
-pnpm test:idempotence
-```
+This prettier plugin has two kinds of tests: unit tests (in `src/`) and integration tests (in `test/`, where we make sure an input file gets transformed into another after running prettier).
 
 To run all tests:
 
@@ -62,23 +45,37 @@ To run all tests:
 pnpm test
 ```
 
-To run from source on another repo or file:
+To run only one of the two kinds:
 
 ```bash
-# build the code so you can run it (only need to do it once)
-pnpm build
+# unit tests
+pnpm mocha 'src/**/*.spec.ts'
 
-# run prettier on a file or folder
-prettier --plugin . --write path/to/files.liquid
+# integration tests
+pnpm mocha 'test/**/*.spec.ts'
 ```
 
-## Running from source on another code base
+To run the idempotence tests (where we make sure running prettier twice on an input file returns the same result):
+
+```bash
+pnpm test:idempotence
+```
 
 ### Adding new integration tests
 
-- Copy any of the folder in the `test/` directory and rename it to something appropriate.
-- In the `index.liquid` file, type code that should be made prettier
-- In the `fixed.liquid` file, type what you'd expect the plugin to output
+- Copy any of the folders in the `test/` directory and rename it to something appropriate.
+- In the `index.html.twig` file, type code that should be made prettier
+- In the `fixed.html.twig` file, type what you'd expect the plugin to output
+
+## Running from source on another code base
+
+```bash
+# build the code so you can run it (re-run after every source change)
+pnpm build
+
+# run prettier on a file or folder
+pnpm prettier --write path/to/files.html.twig
+```
 
 ## How to contribute
 

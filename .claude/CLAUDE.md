@@ -4,6 +4,18 @@ This project is a Prettier plugin for formatting Twig templates. It is a fork of
 
 Because of the Liquid heritage, the parser name is still `liquid-html` and many internal types/files retain `liquid` in their names (e.g. `LiquidParserOptions`, `printer-liquid-html.ts`). This is intentional — don't rename them.
 
+## Repository — issues and PRs live on the fork
+
+This project's issues, PRs, releases and discussions are all on `wearedestination/prettier-plugin-twig`. The Shopify repo linked above is reference-only: read it to understand inherited parser/printer behavior or to compare against upstream fixes, but never assume an issue or PR number refers to it.
+
+Beware when using `gh`: clones of this repo often have two remotes, `origin` (the fork) and `upstream` (`Shopify/prettier-plugin-liquid`). When more than one remote exists, `gh` picks a default base repo and can resolve to `upstream`, silently sending every bare `gh issue view` / `gh pr list` to Shopify's repo. Check with `gh repo set-default --view`, and if it reports anything other than the fork, fix it once per clone:
+
+```bash
+gh repo set-default wearedestination/prettier-plugin-twig
+```
+
+Otherwise pass the repo explicitly, e.g. `gh issue view 15 -R wearedestination/prettier-plugin-twig`.
+
 For a technical overview of how parsing/printing works, see `HOW_IT_WORKS.md` and `docs/whitespace-handling.md`.
 
 ## Package Manager
