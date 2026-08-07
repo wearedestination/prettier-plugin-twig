@@ -327,7 +327,10 @@ export function printLiquidBlockStart(
   // For Twig comments ({# ... #}), don't transform quotes - comments should be preserved as-is
   if (node.name === 'twig') {
     const lines = markupLines(node.markup);
-    if (lines.length > 1) {
+    const isMultiline =
+      lines.length > 1 ||
+      (node.markup.trim() !== '' && originallyHadLineBreaks(path, options));
+    if (isMultiline) {
       return group([
         '{#',
         whitespaceStart,
