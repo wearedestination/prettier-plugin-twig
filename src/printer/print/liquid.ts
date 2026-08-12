@@ -327,9 +327,10 @@ export function printLiquidBlockStart(
   // For Twig comments ({# ... #}), don't transform quotes - comments should be preserved as-is
   if (node.name === 'twig') {
     const lines = markupLines(node.markup);
+    // Keep the comment multi-line when the author wrote it that way, so `#}`
+    // stays on its own line. Empty comments still collapse to `{# #}`.
     const isMultiline =
-      lines.length > 1 ||
-      (node.markup.trim() !== '' && originallyHadLineBreaks(path, options));
+      node.markup.trim() !== '' && originallyHadLineBreaks(path, options);
     if (isMultiline) {
       return group([
         '{#',
