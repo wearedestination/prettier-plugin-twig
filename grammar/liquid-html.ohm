@@ -180,7 +180,33 @@ Liquid <: Helpers {
 
   liquidDrop = "{{" whitespaceControl? space* liquidDropCases whitespaceControl? "}}"
   liquidDropCases = liquidVariable | liquidDropBaseCase
-  liquidDropBaseCase = anyExceptStar<("-}}" | "~}}" | "}}")>
+  // Twig closes an output tag on the first "}}" *at bracket depth zero*, not on
+  // the first "}}" it sees. Scanning naively would truncate the markup of e.g.
+  // {{ form_widget(x, {'attr': {'rows': 3}}) }}, where the "}}" closing the two
+  // nested hashes is part of the expression. So we consume balanced brackets
+  // and quoted strings as units, and only stop on a "}}" outside of both.
+  //
+  // Every sub-rule falls back to a plain character, so unbalanced input still
+  // degrades to the old "stop at the first }}" behaviour instead of failing.
+  liquidDropBaseCase = liquidDropBaseCaseChar*
+  liquidDropBaseCaseChar =
+    | liquidDropQuoted
+    | liquidDropBracketed
+    | (~("-}}" | "~}}" | "}}") any)
+  liquidDropBracketed =
+    | "{" liquidDropBracketedChar* "}"
+    | "[" liquidDropBracketedChar* "]"
+    | "(" liquidDropBracketedChar* ")"
+  liquidDropBracketedChar =
+    | liquidDropQuoted
+    | liquidDropBracketed
+    | (~("}" | "]" | ")" | openControl) any)
+  // A string may legitimately contain "}}", but never an unescaped tag opener —
+  // the lookahead keeps an unterminated quote (`{{ it's }}`) from swallowing the
+  // rest of the document while hunting for a closing quote.
+  liquidDropQuoted =
+    | "'" (~("'" | openControl) any)* "'"
+    | "\"" (~("\"" | openControl) any)* "\""
   liquidInlineComment = "{#" whitespaceControl? space? twigTagMarkup whitespaceControl? "#}"
 
   liquidRawTag =

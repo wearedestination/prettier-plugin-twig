@@ -1,0 +1,40 @@
+It keeps a hash closing against the output tag delimiter intact
+{{ form_widget(form.message, {'attr': {'rows': 3}}) }}
+
+It keeps a bare nested hash intact
+{{ {'a': {'b': 1}} }}
+
+It keeps a nested hash passed to a filter intact
+{{ foo|default({'a': {'b': 1}}) }}
+
+It keeps a nested hash passed to include intact
+{{ include('partial.html.twig', {'attrs': {'class': 'foo'}}) }}
+
+It keeps three levels of nesting intact
+{{ dump({'a': {'b': {'c': 1}}}) }}
+
+It does not insert a whitespace marker inside a breaking expression
+<div>{{ form_widget(form.message, {'attr': {'rows': 3, 'class': 'form-control something long enough to force a break'}}) }}</div>
+
+It keeps following text out of the expression
+<div>{{ attrs({'data': {'x': 1}}) }} trailing text</div>
+
+It handles a nested hash inside an html attribute
+<div class="{{ classes({'a': {'b': 1}}) }}"></div>
+
+It keeps a nested array intact
+{{ foo([1, [2, 3]]) }}
+
+It keeps a string containing the output tag delimiter intact
+{{ 'a }} b' }}
+
+It keeps a quote nested in a string of the other style intact
+{{ trans({'%name%': "it's here"}) }}
+
+It preserves whitespace control operators around a nested hash
+{{- foo({'a': {'b': 1}}) -}}
+{{~ foo({'a': {'b': 1}}) ~}}
+
+It leaves an unterminated quote alone rather than swallowing the doc
+{{ it's }}
+<div>{{ 'x' }}</div>
