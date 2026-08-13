@@ -1,3 +1,22 @@
+3.1.0 / 2026-08-13
+==================
+
+## Fixes
+
+* Do not end an output tag on a `}}` nested inside its expression, e.g. `{{ form_widget(form.message, {'attr': {'rows': 3}}) }}`. Previously mis-parsed, and corrupted the template once anything forced it to reflow [#20](https://github.com/wearedestination/prettier-plugin-twig/pull/20)
+* Choose HTML attribute quotes based on the full printed value, so a quote inside a `{{ … }}` or `{% … %}` no longer gets a conflicting delimiter wrapped around it [#22](https://github.com/wearedestination/prettier-plugin-twig/pull/22)
+* Keep `{# #}` comments multi-line when written that way, instead of collapsing `#}` onto the last line of text [#19](https://github.com/wearedestination/prettier-plugin-twig/pull/19)
+
+## Features
+
+* The parser is now named `twig`, and the plugin's language is reported as `Twig` (was `LiquidHTML`). `liquid-html` still works as a parser alias
+* Plugin options are grouped under the `TWIG` category (was `LIQUID`) in `prettier --help` and editor integrations
+
+## Notes
+
+* Parse errors are now thrown with the name `TwigHTMLParsingError` (was `LiquidHTMLParsingError`). Only affects code matching on `err.name`; the message and `loc` are unchanged
+
+
 3.0.1 / 2026-07-31
 ==================
 
