@@ -1,12 +1,12 @@
 import { Plugin, SupportLanguage, SupportOptions } from 'prettier';
-import { parsers, liquidHtmlLanguageName } from '~/parser';
+import { parsers, twigLanguageName, liquidHtmlLanguageName } from '~/parser';
 import { printers } from '~/printer';
 import { LiquidHtmlNode } from '~/types';
 
 const languages: SupportLanguage[] = [
   {
-    name: 'LiquidHTML',
-    parsers: [liquidHtmlLanguageName],
+    name: 'Twig',
+    parsers: [twigLanguageName, liquidHtmlLanguageName],
     extensions: ['.twig'],
     vscodeLanguageIds: ['twig', 'Twig'],
   },
@@ -15,24 +15,24 @@ const languages: SupportLanguage[] = [
 const options: SupportOptions = {
   twigSingleQuote: {
     type: 'boolean',
-    category: 'LIQUID',
+    category: 'TWIG',
     default: true,
     description:
       'Use single quotes instead of double quotes in Twig tags and objects.',
   },
   liquidSingleQuote: {
     type: 'boolean',
-    category: 'LIQUID',
+    category: 'TWIG',
     default: undefined,
     description:
       'Deprecated: Use twigSingleQuote instead. Use single quotes instead of double quotes in Twig tags and objects.',
   },
   embeddedSingleQuote: {
     type: 'boolean',
-    category: 'LIQUID',
+    category: 'TWIG',
     default: true,
     description:
-      'Use single quotes instead of double quotes in embedded languages (JavaScript, CSS, TypeScript inside <script>, <style> or Liquid equivalent).',
+      'Use single quotes instead of double quotes in embedded languages (JavaScript, CSS, TypeScript inside <script>, <style> or Twig equivalent).',
   },
   singleLineLinkTags: {
     type: 'boolean',
@@ -42,7 +42,7 @@ const options: SupportOptions = {
   },
   indentSchema: {
     type: 'boolean',
-    category: 'LIQUID',
+    category: 'TWIG',
     default: false,
     description: 'Indent the contents of the {% schema %} tag',
   },

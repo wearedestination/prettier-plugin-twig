@@ -786,7 +786,7 @@ describe('Unit: Stage 2 (AST)', () => {
           toLiquidHtmlAST(testCase);
           expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
-          expect(e.name).to.eql('LiquidHTMLParsingError');
+          expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message, testCase).to.match(
             /Attempting to close \w+ '[^']+' before \w+ '[^']+' was closed/,
           );
@@ -803,7 +803,7 @@ describe('Unit: Stage 2 (AST)', () => {
           toLiquidHtmlAST(testCase);
           expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
-          expect(e.name).to.eql('LiquidHTMLParsingError');
+          expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message).to.match(/Attempting to end parsing before \w+ '[^']+' was closed/);
           expect(e.message).not.to.match(/undefined/i);
           expect(e.loc, `expected ${e} to have location information`).not.to.be.undefined;
@@ -818,7 +818,7 @@ describe('Unit: Stage 2 (AST)', () => {
           toLiquidHtmlAST(testCase);
           expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
-          expect(e.name).to.eql('LiquidHTMLParsingError');
+          expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message).to.match(/Attempting to close \w+ '[^']+' before it was opened/);
           expect(e.message).not.to.match(/undefined/i);
           expect(e.loc, `expected ${e} to have location information`).not.to.be.undefined;
@@ -836,7 +836,7 @@ describe('Unit: Stage 2 (AST)', () => {
           if (e.name === 'AssertionError') {
             console.log(e);
           }
-          expect(e.name).to.eql('LiquidHTMLParsingError');
+          expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.loc, `expected ${e} to have location information`).not.to.be.undefined;
         }
       }
