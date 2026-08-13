@@ -1,0 +1,33 @@
+It should not wrap a value in a quote that appears inside a twig drop
+singleQuote: true
+<div class="{{ foo('a') }}"></div>
+
+It should use the opposite quote when the preferred one appears inside a twig drop
+<div class='{{ foo("a") }}'></div>
+
+It should use the opposite quote when the preferred one appears inside a twig tag
+singleQuote: true
+<div class="{% if a %}{{ b }}{% else %}{{ c('d') }}{% endif %}"></div>
+
+It should keep the original double quotes when the value contains both quote characters
+singleQuote: true
+<div class="{{ foo('a', "b") }}"></div>
+
+It should keep the original single quotes when the value contains both quote characters
+<div class='{{ foo('a', "b") }}'></div>
+
+It should use the preferred quote for unquoted values that contain both quote characters
+<div id="{{ foo('a', "b") }}"></div>
+
+It should not introduce a conflicting quote inside verbatim blocks
+singleQuote: true
+{% verbatim %}
+<div class="{{ foo('a') }}"></div>
+{% endverbatim %}
+
+It should still use the opposite quote when text-like values contain the preferred quote
+singleQuote: true
+<div data-x="it's"></div>
+
+It should still use the opposite quote when text-like values contain the preferred quote (2)
+<div data-x='say "hi"'></div>

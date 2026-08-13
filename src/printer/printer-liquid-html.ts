@@ -35,7 +35,6 @@ import {
   bodyLines,
   hasLineBreakInRange,
   isEmpty,
-  isTextLikeNode,
   reindent,
 } from '~/printer/utils';
 import { printElement } from '~/printer/print/element';
@@ -84,6 +83,39 @@ function printAttributeName(
   );
 }
 
+/**
+ * Picks the delimiter to wrap an attribute value with.
+ *
+ * `value` is the raw source slice we're about to print, so it may contain
+ * quotes that live inside Twig drops or tags. We can't escape those (the
+ * escape would end up in the Twig expression), so the best we can do is pick
+ * the delimiter that doesn't appear in the value.
+ *
+ * When the value contains both quote characters there is no safe delimiter.
+ * Rather than pick one and break the value, we keep whatever the author wrote
+ * and leave it to them.
+ */
+function chooseAttributeQuote(
+  node: Extract<LiquidHtmlNode, { attributePosition: Position }>,
+  value: string,
+  options: LiquidParserOptions,
+): string {
+  const preferredQuote = options.singleQuote ? `'` : `"`;
+  const otherQuote = oppositeQuotes[preferredQuote];
+
+  if (!value.includes(preferredQuote)) return preferredQuote;
+  if (!value.includes(otherQuote)) return otherQuote;
+
+  switch (node.type) {
+    case NodeTypes.AttrSingleQuoted:
+      return `'`;
+    case NodeTypes.AttrDoubleQuoted:
+      return `"`;
+    default:
+      return preferredQuote;
+  }
+}
+
 function printAttribute<
   T extends Extract<LiquidHtmlNode, { attributePosition: Position }>,
 >(path: AstPath<T>, options: LiquidParserOptions, print: LiquidPrinter): Doc {
@@ -119,14 +151,11 @@ function printAttribute<
     node.attributePosition.start,
     node.attributePosition.end,
   );
-  const preferredQuote = options.singleQuote ? `'` : `"`;
-  const attributeValueContainsQuote = !!node.value.find(
-    (valueNode) =>
-      isTextLikeNode(valueNode) && valueNode.value.includes(preferredQuote),
-  );
-  const quote = attributeValueContainsQuote
-    ? oppositeQuotes[preferredQuote]
-    : preferredQuote;
+  // We print `value` verbatim — Twig drops and tags included — so the
+  // delimiter has to be chosen against that entire string, not just the
+  // text-like parts of it. A quote inside `{{ … }}` closes the attribute in
+  // any HTML parser that reads the template without rendering it.
+  const quote = chooseAttributeQuote(node, value, options);
 
   return [
     printAttributeName(path, options, print),
