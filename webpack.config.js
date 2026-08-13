@@ -10,7 +10,7 @@ module.exports = {
     path: __dirname,
     globalObject: 'this',
     library: {
-      name: 'prettierPluginLiquid',
+      name: 'prettierPluginTwig',
       type: 'umd',
     },
   },

@@ -4,7 +4,7 @@ That is, by default, prettier should not alter the *semantic meaning* of a file.
 
 Examples:
 - Whitespace handling in HTML
-- Whitespace handling in Liquid
+- Whitespace handling in Twig
 
 ## Whitespace handling in HTML
 

@@ -812,7 +812,7 @@ describe('Unit: Stage 1 (CST)', () => {
           toLiquidHtmlCST(testCase);
           expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
-          expect(e.name).to.eql('LiquidHTMLParsingError');
+          expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.loc, `expected ${e} to have location information`).not.to.be.undefined;
         }
       }

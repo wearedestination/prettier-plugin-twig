@@ -28,13 +28,13 @@ Whitespace (or the lack of thereof) between nodes is **meaningful** when either 
 - the previous node is trailing whitespace sensitive
 - the next node is leading whitespace sensitive.
 
-A **node** is one of the many AST (Abstract Syntax Tree) nodes that we got from parsing the Liquid template.
+A **node** is one of the many AST (Abstract Syntax Tree) nodes that we got from parsing the Twig template.
 
 ## The tools
 
 There are two categories of tools to deal with whitespace or the lack of whitespace.
 - HTML tools
-- Liquid tools
+- Twig tools
 
 ### Maintaining lack of whitespace in HTML
 
@@ -53,22 +53,22 @@ For **HTML**, the only solution is to "borrow" the sibling (or parent) node's ta
 
 What we see here is that the `TextNode` with value of `world` _borrowed_ the `em` tag's closing tag end's marker.
 
-### Maintaining lack of whitespace in Liquid
+### Maintaining lack of whitespace in Twig
 
-For **Liquid**, we can optionally add whitespace stripping characters to the node:
+For **Twig**, we can optionally add whitespace stripping characters to the node:
 
 ```html
 <!-- before -->
-<p><em>hello</em>{% echo 'world' %}</p>
+<p><em>hello</em>{{ 'world' }}</p>
 
 <!-- after -->
 <p>
   <em>hello</em>
-  {%- echo 'world' %}
+  {{- 'world' }}
 </p>
 ```
 
-What we see here is that `{% echo 'world' %}` Liquid tag added the whitespace stripping character `-` to the left to maintain the lack of whitespace.
+What we see here is that the `{{ 'world' }}` Twig output tag added the whitespace stripping character `-` to the left to maintain the lack of whitespace.
 
 ## The solution
 
@@ -80,9 +80,9 @@ To maintain the lack of whitespace in HTML, we have a rule:
 
 > When the lack of whitespace around an HTML node is meaningful, maintain it with tag marker borrowing.
 
-To maintain the lack of whitespace in Liquid, we have this rule:
+To maintain the lack of whitespace in Twig, we have this rule:
 
-> When the lack of whitespace around a Liquid node is meaningful, maintain it with whitespace stripping.
+> When the lack of whitespace around a Twig node is meaningful, maintain it with whitespace stripping.
 
 When the two rules above are in conflict, we have another rule:
 

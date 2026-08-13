@@ -11,7 +11,7 @@ export class LiquidHTMLCSTParsingError extends SyntaxError {
 
   constructor(ohm: MatchResult) {
     super(ohm.shortMessage);
-    this.name = 'LiquidHTMLParsingError';
+    this.name = 'TwigHTMLParsingError';
 
     const input = (ohm as any).input;
     const errorPos = (ohm as any)._rightmostFailurePosition;
@@ -47,7 +47,7 @@ export class LiquidHTMLASTParsingError extends SyntaxError {
     endIndex: number,
   ) {
     super(message);
-    this.name = 'LiquidHTMLParsingError';
+    this.name = 'TwigHTMLParsingError';
 
     const lc = lineColumn(source);
     const start = lc.fromIndex(startIndex);

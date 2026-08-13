@@ -13,7 +13,7 @@
       }
     },
     {
-      "files": "*.liquid",
+      "files": "*.twig",
       "options": {
         "singleQuote": false,
         "printWidth": 80
