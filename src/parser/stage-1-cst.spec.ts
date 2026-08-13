@@ -34,6 +34,32 @@ describe('Unit: Stage 1 (CST)', () => {
           expectPath(cst, '1.whitespaceEnd').to.equal('-');
         });
 
+        it('should not end the drop on a "}}" nested inside the expression', () => {
+          [
+            `form_widget(form.message, {'attr': {'rows': 3}})`,
+            `{'a': {'b': 1}}`,
+            `foo|default({'a': {'b': 1}})`,
+            `dump({'a': {'b': {'c': 1}}})`,
+            `foo([1, [2, 3]])`,
+            `'a }} b'`,
+            `trans({'%name%': "it's here"})`,
+          ].forEach((markup) => {
+            cst = toCST(`{{ ${markup} }}`);
+            expectPath(cst, '0.type').to.equal('LiquidDrop');
+            expectPath(cst, '0.markup').to.equal(markup);
+            // A truncated drop leaves the remainder behind as a sibling node.
+            expect(cst).to.have.lengthOf(1);
+          });
+        });
+
+        it('should still end the drop on the first unbalanced "}}"', () => {
+          // Degenerate input: the brackets never close, so we fall back to the
+          // naive scan rather than swallowing the rest of the document.
+          cst = toCST(`{{ it's }}<div>{{ 'x' }}</div>`);
+          expectPath(cst, '0.type').to.equal('LiquidDrop');
+          expectPath(cst, '0.markup').to.equal(`it's`);
+        });
+
         it('should parse strings', () => {
           [
             { expression: `"string o' string"`, value: `string o' string`, single: false },
