@@ -161,7 +161,7 @@ export function writeFile(dirname: string, filename: string, contents: string) {
 export async function format(content: string, options: any) {
   return prettier.format(content, {
     ...options,
-    parser: 'liquid-html',
+    parser: 'twig',
     plugins: [plugin],
   });
 }
@@ -169,7 +169,7 @@ export async function format(content: string, options: any) {
 export function printToDoc(content: string, options: any = {}) {
   return (prettier as any).__debug.printToDoc(content, {
     ...options,
-    parser: 'liquid-html',
+    parser: 'twig',
     plugins: [plugin],
   });
 }
