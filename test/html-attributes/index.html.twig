@@ -86,11 +86,11 @@ If singleQuote is false, and the attribute value contained double quotes, use si
 singleQuote: false
 <link onload='this.media="all"'>
 
-If singleQuote is true, and the attribute value has liquid tags that contain single quotes, don't care.
+If singleQuote is true, and the attribute value has twig tags that contain single quotes, use double quotes
 singleQuote: true
 <script src="{{ 'styles.css' | asset_url }}"></script>
 
-If singleQuote is false, and the attribute value has liquid tags that contain double quotes, don't care.
+If singleQuote is false, and the attribute value has twig tags that contain double quotes, use single quotes
 singleQuote: false
 <script src="{{ "styles.css" | asset_url }}"></script>
 
