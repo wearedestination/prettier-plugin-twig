@@ -50,6 +50,7 @@ import {
   ConcreteAttrSingleQuoted,
   ConcreteAttrDoubleQuoted,
   ConcreteAttrUnquoted,
+  ConcreteAttrEmpty,
   ConcreteTwigVariable,
   ConcreteTwigLiteral,
   ConcreteTwigFilter,
@@ -405,13 +406,13 @@ export interface AttrDoubleQuoted
 export interface AttrUnquoted
   extends AttributeNodeBase<NodeTypes.AttrUnquoted> {}
 export interface AttrEmpty extends ASTNode<NodeTypes.AttrEmpty> {
-  name: (TextNode | TwigDrop)[];
+  name: (TextNode | TwigDrop | TwigTagBaseCase)[];
 }
 
 export type ValueNode = TextNode | TwigNode;
 
 export interface AttributeNodeBase<T> extends ASTNode<T> {
-  name: (TextNode | TwigDrop)[];
+  name: (TextNode | TwigDrop | TwigTagBaseCase)[];
   value: ValueNode[];
   attributePosition: Position;
 }
@@ -813,7 +814,7 @@ function buildAst(
       case ConcreteNodeTypes.AttrEmpty: {
         builder.push({
           type: NodeTypes.AttrEmpty,
-          name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
+          name: cstToAst(node.name, options) as AttrEmpty['name'],
           position: position(node),
           source: node.source,
         });
@@ -829,7 +830,7 @@ function buildAst(
               | NodeTypes.AttrSingleQuoted
               | NodeTypes.AttrDoubleQuoted
               | NodeTypes.AttrUnquoted,
-            name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
+            name: cstToAst(node.name, options) as AttrUnquoted['name'],
             position: position(node),
             source: node.source,
 
@@ -863,7 +864,7 @@ function buildAst(
   return builder;
 }
 
-function nameLength(names: (ConcreteTwigDrop | ConcreteTextNode)[]) {
+function nameLength(names: ConcreteAttrEmpty['name']) {
   const start = names.at(0)!;
   const end = names.at(-1)!;
   return end.locEnd - start.locStart;

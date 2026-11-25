@@ -112,14 +112,14 @@ function printAttributeName(
   node.name;
   return join(
     '',
-    (path as any).map((part: AstPath<string | TwigDrop>) => {
+    (path as any).map((part: AstPath<string | TwigDrop | TwigTag>) => {
       const value = part.getValue();
       if (typeof value === 'string') {
         return value;
       } else {
-        // We want to force the TwigDrop to be on one line to avoid weird
+        // We want to force the Twig node to be on one line to avoid weird
         // shenanigans
-        return utils.removeLines(print(part as AstPath<TwigDrop>));
+        return utils.removeLines(print(part as AstPath<TwigDrop | TwigTag>));
       }
     }, 'name'),
   );

@@ -1,0 +1,76 @@
+It should keep an inline comment after text
+<p>text {# hello world #}</p>
+
+It should keep an inline comment between text
+<p>text {# hello world #} more text{# glued #}, the end</p>
+
+It should not parse the contents of a comment
+<p>text {# {% if x %} {{ y #}</p>
+
+It should not parse HTML or quotes in a comment
+<ul><li>it {# isn't </li> <script> #} here</li><li>there {# <div class="a> #}</li></ul>
+
+It should not parse closing and branching tags in a comment
+{% if a %}text {# {% else %} {% endif %} #}{% else %}other {# {% endif %} #}{% endif %}
+
+It should not parse raw tags in a comment
+<p>text {# {% verbatim %} #} {{ x|upper }}</p>
+
+It should keep the layout of a multi-line comment after text
+<p>A paragraph.
+{#
+first line
+  second line
+
+last line
+#}
+</p>
+
+It should keep the layout of a multi-line comment between text
+<p>before {#
+first line
+last line
+#} after</p>
+
+It should fill the text around an inline comment
+<p>A very long paragraph that goes past the print width with a {# spaced comment #} word after it</p>
+
+It should strip whitespace when breaking around a comment without whitespace around it
+<p>A very long paragraph that goes past the print width with a{# glued comment here #}word after it</p>
+
+It should keep the whitespace control of a comment after text
+<p>a {#~ b ~#} c</p>
+
+It should collapse an empty comment after text
+<p>text {##}</p>
+
+It should respect a prettier-ignore comment after text
+<div>text
+{# prettier-ignore #}
+<b>{{a|b}}</b></div>
+
+It should not treat a comment opener in an expression as a comment
+<p>text {{ foo("#{x}") }}</p>
+<p>text {{ "{#{x}}" }}</p>
+<p>text {{ foo({'a': '{#'}) }} {# comment #}</p>
+{% set x = '{# not a comment #}' %}
+
+It should not treat a comment opener in a raw element as a comment
+<script>
+const a = "{#"; const b = {#x: 1};
+</script>
+
+It should not treat a comment opener in a raw tag as a comment
+{% verbatim %}text {# it's{% endverbatim %} text {# {% verbatim %} #}
+
+It should parse comments in quoted attribute values
+<a class="a {# {{ b }} #} c" id='d {# it's #}' title="{# f #} g">x</a>
+
+It should parse comments in unquoted attribute values
+<a class=a{# it's #}b>x</a>
+
+It should parse comments in attribute names
+<a data-{# it's #}a="1" data-b{# c #}>x</a>
+
+It should parse comments between attributes
+<a data-a {# it's #} data-b {# <b> #}data-c="1">x</a>
