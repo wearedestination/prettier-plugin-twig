@@ -6,9 +6,9 @@ import {
   HtmlElement,
   HtmlNode,
   HtmlSelfClosingElement,
-  LiquidHtmlNode,
-  LiquidParserOptions,
-  LiquidPrinter,
+  TwigHtmlNode,
+  TwigParserOptions,
+  TwigPrinter,
   NodeTypes,
   Position,
 } from '~/types';
@@ -18,7 +18,7 @@ import {
   isHtmlNode,
   isVoidElement,
   isHtmlElement,
-  isLiquidNode,
+  isTwigNode,
   isPreLikeNode,
   hasNoCloseMarker,
   isTextLikeNode,
@@ -39,8 +39,8 @@ const {
 const { replaceEndOfLine } = doc.utils as any;
 
 export function printClosingTag(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return [
     hasNoCloseMarker(node) ? '' : printClosingTagStart(node, options),
@@ -49,8 +49,8 @@ export function printClosingTag(
 }
 
 export function printClosingTagStart(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return node.lastChild &&
     needsToBorrowParentClosingTagStartMarker(node.lastChild)
@@ -62,8 +62,8 @@ export function printClosingTagStart(
 }
 
 export function printClosingTagEnd(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return (
     node.next
@@ -77,18 +77,15 @@ export function printClosingTagEnd(
       ];
 }
 
-function printClosingTagPrefix(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
-) {
+function printClosingTagPrefix(node: TwigHtmlNode, options: TwigParserOptions) {
   return needsToBorrowLastChildClosingTagEndMarker(node)
     ? printClosingTagEndMarker(node.lastChild, options)
     : '';
 }
 
 export function printClosingTagSuffix(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return needsToBorrowParentClosingTagStartMarker(node)
     ? printClosingTagStartMarker(node.parentNode, options)
@@ -98,8 +95,8 @@ export function printClosingTagSuffix(
 }
 
 export function printClosingTagStartMarker(
-  node: LiquidHtmlNode | undefined,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode | undefined,
+  options: TwigParserOptions,
 ) {
   if (!node) return '';
   /* istanbul ignore next */
@@ -117,8 +114,8 @@ export function printClosingTagStartMarker(
 }
 
 export function printClosingTagEndMarker(
-  node: LiquidHtmlNode | undefined,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode | undefined,
+  options: TwigParserOptions,
 ) {
   if (!node) return '';
   if (shouldNotPrintClosingTag(node, options)) {
@@ -147,8 +144,8 @@ export function printClosingTagEndMarker(
 }
 
 function shouldNotPrintClosingTag(
-  node: LiquidHtmlNode,
-  _options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  _options: TwigParserOptions,
 ) {
   return (
     !hasNoCloseMarker(node) &&
@@ -157,7 +154,7 @@ function shouldNotPrintClosingTag(
   );
 }
 
-export function needsToBorrowPrevClosingTagEndMarker(node: LiquidHtmlNode) {
+export function needsToBorrowPrevClosingTagEndMarker(node: TwigHtmlNode) {
   /**
    *     <p></p
    *     >123
@@ -168,7 +165,7 @@ export function needsToBorrowPrevClosingTagEndMarker(node: LiquidHtmlNode) {
    *     ^
    */
   return (
-    !isLiquidNode(node) &&
+    !isTwigNode(node) &&
     node.prev &&
     // node.prev.type !== 'docType' &&
     isHtmlNode(node.prev) &&
@@ -176,9 +173,7 @@ export function needsToBorrowPrevClosingTagEndMarker(node: LiquidHtmlNode) {
   );
 }
 
-export function needsToBorrowLastChildClosingTagEndMarker(
-  node: LiquidHtmlNode,
-) {
+export function needsToBorrowLastChildClosingTagEndMarker(node: TwigHtmlNode) {
   /**
    *     <p
    *       ><a></a
@@ -195,7 +190,7 @@ export function needsToBorrowLastChildClosingTagEndMarker(
   );
 }
 
-export function needsToBorrowParentClosingTagStartMarker(node: LiquidHtmlNode) {
+export function needsToBorrowParentClosingTagStartMarker(node: TwigHtmlNode) {
   /**
    *     <p>
    *       123</p
@@ -211,13 +206,13 @@ export function needsToBorrowParentClosingTagStartMarker(node: LiquidHtmlNode) {
     isHtmlNode(node.parentNode) &&
     !node.next &&
     hasMeaningfulLackOfTrailingWhitespace(node) &&
-    !isLiquidNode(node) &&
+    !isTwigNode(node) &&
     (isTextLikeNode(getLastDescendant(node)) ||
-      isLiquidNode(getLastDescendant(node)))
+      isTwigNode(getLastDescendant(node)))
   );
 }
 
-export function needsToBorrowNextOpeningTagStartMarker(node: LiquidHtmlNode) {
+export function needsToBorrowNextOpeningTagStartMarker(node: TwigHtmlNode) {
   /**
    *     123<p
    *        ^^
@@ -231,7 +226,7 @@ export function needsToBorrowNextOpeningTagStartMarker(node: LiquidHtmlNode) {
   );
 }
 
-export function needsToBorrowParentOpeningTagEndMarker(node: LiquidHtmlNode) {
+export function needsToBorrowParentOpeningTagEndMarker(node: TwigHtmlNode) {
   /**
    *     <p
    *       >123
@@ -245,7 +240,7 @@ export function needsToBorrowParentOpeningTagEndMarker(node: LiquidHtmlNode) {
     isHtmlNode(node.parentNode) &&
     !node.prev &&
     hasMeaningfulLackOfLeadingWhitespace(node) &&
-    !isLiquidNode(node)
+    !isTwigNode(node)
   );
 }
 
@@ -254,8 +249,8 @@ export function needsToBorrowParentOpeningTagEndMarker(node: LiquidHtmlNode) {
  */
 function printAttributes(
   path: AstPath<HtmlNode>,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
+  options: TwigParserOptions,
+  print: TwigPrinter,
   attrGroupId: symbol,
 ) {
   const node = path.getValue();
@@ -307,7 +302,7 @@ function printAttributes(
       isSelfClosing(node)) &&
     !forceBreakAttrContent &&
     node.attributes.length === 1 &&
-    !isLiquidNode(node.attributes[0]);
+    !isTwigNode(node.attributes[0]);
 
   const forceNotToBreakAttrContent =
     isSingleLineLinkTagException || shouldNotBreakAttributes;
@@ -368,7 +363,7 @@ function printAttributes(
   ];
 }
 
-function printOpeningTagEnd(node: LiquidHtmlNode) {
+function printOpeningTagEnd(node: TwigHtmlNode) {
   return node.firstChild &&
     needsToBorrowParentOpeningTagEndMarker(node.firstChild)
     ? ''
@@ -377,8 +372,8 @@ function printOpeningTagEnd(node: LiquidHtmlNode) {
 
 export function printOpeningTag(
   path: AstPath<HtmlNode>,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
+  options: TwigParserOptions,
+  print: TwigPrinter,
   attrGroupId: symbol,
 ) {
   const node = path.getValue();
@@ -391,8 +386,8 @@ export function printOpeningTag(
 }
 
 export function printOpeningTagStart(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return node.prev && needsToBorrowNextOpeningTagStartMarker(node.prev)
     ? ''
@@ -400,8 +395,8 @@ export function printOpeningTagStart(
 }
 
 export function printOpeningTagPrefix(
-  node: LiquidHtmlNode,
-  options: LiquidParserOptions,
+  node: TwigHtmlNode,
+  options: TwigParserOptions,
 ) {
   return needsToBorrowParentOpeningTagEndMarker(node)
     ? printOpeningTagEndMarker(node.parentNode)
@@ -411,7 +406,7 @@ export function printOpeningTagPrefix(
 }
 
 // TODO
-export function printOpeningTagStartMarker(node: LiquidHtmlNode | undefined) {
+export function printOpeningTagStartMarker(node: TwigHtmlNode | undefined) {
   if (!node) return '';
   switch (node.type) {
     case NodeTypes.HtmlComment:
@@ -430,7 +425,7 @@ export function printOpeningTagStartMarker(node: LiquidHtmlNode | undefined) {
   }
 }
 
-export function printOpeningTagEndMarker(node: LiquidHtmlNode | undefined) {
+export function printOpeningTagEndMarker(node: TwigHtmlNode | undefined) {
   if (!node) return '';
   switch (node.type) {
     // case 'ieConditionalComment':
@@ -455,7 +450,7 @@ export function getNodeContent(
     HtmlNode,
     { blockStartPosition: Position; blockEndPosition: Position }
   >,
-  options: LiquidParserOptions,
+  options: TwigParserOptions,
 ) {
   let start = node.blockStartPosition.end;
   if (

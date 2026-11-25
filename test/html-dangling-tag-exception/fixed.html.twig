@@ -11,19 +11,6 @@ printWidth: 1
   >
 {%- endif %}
 
-It should pretty print dangling open tags inside unless statements
-printWidth: 1
-{% unless condition -%}
-  <product-wrapper
-    attr="value"
-    other="{{ product.id }}"
-  >
-{%- else %}
-  <div
-    id="{{ product.id }}"
-  >
-{% endunless %}
-
 It should pretty print dangling close tags inside if statements
 printWidth: 1
 {% if condition %}
@@ -31,14 +18,6 @@ printWidth: 1
 {% else -%}
   </product-wrapper>
 {%- endif %}
-
-It should pretty print dangling close tags inside unless statements
-printWidth: 1
-{% unless condition %}
-  </div>
-{% else -%}
-  </product-wrapper>
-{%- endunless %}
 
 It should allow two nodes as well, without indenting
 printWidth: 1

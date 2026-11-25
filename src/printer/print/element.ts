@@ -19,10 +19,10 @@ import { printChildren } from '~/printer/print/children';
 import {
   AstPath,
   NodeTypes,
-  LiquidParserOptions,
-  LiquidPrinter,
+  TwigParserOptions,
+  TwigPrinter,
   HtmlNode,
-  LiquidPrinterArgs,
+  TwigPrinterArgs,
   HtmlRawNode,
 } from '~/types';
 import { RawMarkupKinds } from '~/parser';
@@ -42,9 +42,9 @@ const { replaceEndOfLine } = doc.utils as any;
 
 export function printRawElement(
   path: AstPath<HtmlRawNode>,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
-  _args: LiquidPrinterArgs,
+  options: TwigParserOptions,
+  print: TwigPrinter,
+  _args: TwigPrinterArgs,
 ) {
   const node = path.getValue();
   const attrGroupId = Symbol('element-attr-group-id');
@@ -73,9 +73,9 @@ export function printRawElement(
 
 export function printElement(
   path: AstPath<HtmlNode>,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
-  args: LiquidPrinterArgs,
+  options: TwigParserOptions,
+  print: TwigPrinter,
+  args: TwigPrinterArgs,
 ) {
   const node = path.getValue();
   const attrGroupId = Symbol('element-attr-group-id');

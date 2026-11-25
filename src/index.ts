@@ -1,12 +1,12 @@
 import { Plugin, SupportLanguage, SupportOptions } from 'prettier';
-import { parsers, twigLanguageName, liquidHtmlLanguageName } from '~/parser';
+import { parsers, twigLanguageName } from '~/parser';
 import { printers } from '~/printer';
-import { LiquidHtmlNode } from '~/types';
+import { TwigHtmlNode } from '~/types';
 
 const languages: SupportLanguage[] = [
   {
     name: 'Twig',
-    parsers: [twigLanguageName, liquidHtmlLanguageName],
+    parsers: [twigLanguageName],
     extensions: ['.twig'],
     vscodeLanguageIds: ['twig', 'Twig'],
   },
@@ -19,13 +19,6 @@ const options: SupportOptions = {
     default: true,
     description:
       'Use single quotes instead of double quotes in Twig tags and objects.',
-  },
-  liquidSingleQuote: {
-    type: 'boolean',
-    category: 'TWIG',
-    default: undefined,
-    description:
-      'Deprecated: Use twigSingleQuote instead. Use single quotes instead of double quotes in Twig tags and objects.',
   },
   embeddedSingleQuote: {
     type: 'boolean',
@@ -40,19 +33,13 @@ const options: SupportOptions = {
     default: false,
     description: 'Always print link tags on a single line to remove clutter',
   },
-  indentSchema: {
-    type: 'boolean',
-    category: 'TWIG',
-    default: false,
-    description: 'Indent the contents of the {% schema %} tag',
-  },
 };
 
 const defaultOptions = {
   printWidth: 120,
 };
 
-const plugin: Plugin<LiquidHtmlNode> = {
+const plugin: Plugin<TwigHtmlNode> = {
   languages,
   parsers: parsers as Plugin['parsers'],
   printers: printers as any,

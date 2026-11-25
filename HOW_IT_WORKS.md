@@ -38,14 +38,10 @@ But this doesn't because the div is closed before the if tag was closed:
 ## How it works
 
 1. We parse the Twig source code into a Twig/HTML AST.
-   1. Our [harc/ohm](https://github.com/harc/ohm) grammar tokenizes the source code.[(Link to grammar.)](grammar/liquid-html.ohm)
+   1. Our [harc/ohm](https://github.com/harc/ohm) grammar tokenizes the source code.[(Link to grammar.)](grammar/twig-html.ohm)
    2. From Ohm's tokens, we build a Concrete Syntax Tree (CST). [(Link to Grammar->CST code.)](src/parser/stage-1-cst.ts)
    3. From the nodes in the CST, we build an AST. [(Link to CST->AST code.)](src/parser/stage-2-ast.ts)
-2. From the AST, we build a [`Doc`](https://github.com/prettier/prettier/blob/main/commands.md#prettiers-intermediate-representation-doc) that prettier then prints for us.[(Link to printer)](src/printer/printer-liquid-html.ts)
-
-> Note: the parser, printer and AST node types still carry `Liquid` in their
-> names. This plugin is a fork of Shopify's Liquid plugin and those names were
-> deliberately left alone to keep diffs against upstream readable.
+2. From the AST, we build a [`Doc`](https://github.com/prettier/prettier/blob/main/commands.md#prettiers-intermediate-representation-doc) that prettier then prints for us.[(Link to printer)](src/printer/printer-twig-html.ts)
 
 Here's a flowchart that roughly illustrates the process.
 
@@ -73,31 +69,31 @@ flowchart TB
     subgraph CST
       direction TB
       c1["HtmlTagOpen#ul"] --->
-      c2["LiquidTagOpen#for el in col"] --->
+      c2["TwigTagOpen#for el in col"] --->
       c3["HtmlTagOpen#li"]
       c3 -->
-      c4["LiquidDrop#el"] -->
+      c4["TwigDrop#el"] -->
       c5["HtmlTagClose#li"] -->
-      c6["LiquidTagClose#for"]
+      c6["TwigTagClose#for"]
       c3 .- attributes .-
       c3a["HtmlAttribute"]
       c3a .- name .- c3an["class"]
       c3a .- value .- c3av
-      c3av["LiquidDrop#loop.cycle('odd', 'even')"]
+      c3av["TwigDrop#loop.cycle('odd', 'even')"]
 
     end
     subgraph AST
       direction TB
       a1["HtmlElement#ul"] -- children -->
-      a2["LiquidTag#for el in col"] -- children -->
+      a2["TwigTag#for el in col"] -- children -->
       a3["HtmlElement#li"]
       a3 -- children -->
-      a4["LiquidDrop#el"]
+      a4["TwigDrop#el"]
       a3 -- attributes -->
       a3a["HtmlAttribute"]
       a3a -- name --> a3an["class"]
       a3a -- value --> a3av
-      a3av["LiquidDrop#loop.cycle('odd', 'even')"]
+      a3av["TwigDrop#loop.cycle('odd', 'even')"]
     end
     subgraph OUTPUT
       o1["#lt;ul#gt;<br>  {% for el in col %}<br>    #lt;li class=#quot;{{ loop.cycle('odd', 'even') }}#quot;#gt;<br>      {{ el }}<br>    #lt;/li#gt;<br>  {% endfor %}<br>#lt;/ul#gt;"]

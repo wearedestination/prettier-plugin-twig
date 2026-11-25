@@ -1,7 +1,7 @@
-It should print multiline liquid the way we'd expect
+It should print multiline twig the way we'd expect
 printWidth: 80
 <div>
-  {% render 'foo', product: product %}
+  {% include 'foo', product: product %}
   {{
     product.featured_image
     | image_url: width: 400, height: 400, crop: 'top'
@@ -9,7 +9,7 @@ printWidth: 80
   }}
 </div>
 <div>
-  {% render 'foo', product: product %}
+  {% include 'foo', product: product %}
   {{
     product.featured_image
     | image_url: width: 400, height: 400, crop: 'top'

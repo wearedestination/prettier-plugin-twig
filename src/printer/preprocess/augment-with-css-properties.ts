@@ -1,15 +1,15 @@
 import {
   CSS_DISPLAY_DEFAULT,
-  CSS_DISPLAY_LIQUID_DEFAULT,
-  CSS_DISPLAY_LIQUID_TAGS,
+  CSS_DISPLAY_TWIG_DEFAULT,
+  CSS_DISPLAY_TWIG_TAGS,
   CSS_DISPLAY_TAGS,
   CSS_WHITE_SPACE_DEFAULT,
-  CSS_WHITE_SPACE_LIQUID_TAGS,
+  CSS_WHITE_SPACE_TWIG_TAGS,
   CSS_WHITE_SPACE_TAGS,
 } from '~/constants.evaluate';
 import {
   NodeTypes,
-  LiquidParserOptions,
+  TwigParserOptions,
   Augment,
   AugmentedNode,
   WithCssProperties,
@@ -27,23 +27,11 @@ function getCssWhitespaceFromComment(body: string) {
 
 function getCssDisplay(
   node: AugmentedNode<WithSiblings>,
-  options: LiquidParserOptions,
+  options: TwigParserOptions,
 ): string {
   if (node.prev && node.prev.type === NodeTypes.HtmlComment) {
     // <!-- display: block -->
     const cssDisplay = getCssDisplayFromComment(node.prev.body);
-    if (cssDisplay) {
-      return cssDisplay;
-    }
-  }
-
-  if (
-    node.prev &&
-    node.prev.type === NodeTypes.LiquidTag &&
-    node.prev.name === '#'
-  ) {
-    // {% # display: block %}
-    const cssDisplay = getCssDisplayFromComment(node.prev.markup);
     if (cssDisplay) {
       return cssDisplay;
     }
@@ -87,22 +75,20 @@ function getCssDisplay(
     case NodeTypes.TextNode:
       return 'inline';
 
-    case NodeTypes.LiquidTag:
-    case NodeTypes.LiquidRawTag:
+    case NodeTypes.TwigTag:
+    case NodeTypes.TwigRawTag:
       switch (options.htmlWhitespaceSensitivity) {
         case 'strict':
           return 'inline';
         case 'ignore':
           return 'block';
         default: {
-          return (
-            CSS_DISPLAY_LIQUID_TAGS[node.name] || CSS_DISPLAY_LIQUID_DEFAULT
-          );
+          return CSS_DISPLAY_TWIG_TAGS[node.name] || CSS_DISPLAY_TWIG_DEFAULT;
         }
       }
 
-    case NodeTypes.LiquidBranch:
-    case NodeTypes.LiquidDrop:
+    case NodeTypes.TwigBranch:
+    case NodeTypes.TwigDrop:
       return 'inline';
 
     case NodeTypes.AttrDoubleQuoted:
@@ -121,19 +107,17 @@ function getCssDisplay(
     case NodeTypes.YAMLFrontmatter:
       return 'block';
 
-    case NodeTypes.LiquidVariable:
-    case NodeTypes.LiquidFilter:
+    case NodeTypes.TwigVariable:
+    case NodeTypes.TwigFilter:
     case NodeTypes.NamedArgument:
-    case NodeTypes.LiquidLiteral:
+    case NodeTypes.TwigLiteral:
     case NodeTypes.String:
     case NodeTypes.Number:
     case NodeTypes.Range:
     case NodeTypes.VariableLookup:
-    case NodeTypes.AssignMarkup:
-    case NodeTypes.CycleMarkup:
     case NodeTypes.ForMarkup:
-    case NodeTypes.RenderMarkup:
-    case NodeTypes.RenderVariableExpression:
+    case NodeTypes.IncludeMarkup:
+    case NodeTypes.IncludeVariableExpression:
     case NodeTypes.LogicalExpression:
     case NodeTypes.Comparison:
       return 'should not be relevant';
@@ -147,18 +131,6 @@ function getNodeCssStyleWhiteSpace(node: AugmentedNode<WithSiblings>): string {
   if (node.prev && node.prev.type === NodeTypes.HtmlComment) {
     // <!-- white-space: normal -->
     const whitespace = getCssWhitespaceFromComment(node.prev.body);
-    if (whitespace) {
-      return whitespace;
-    }
-  }
-
-  if (
-    node.prev &&
-    node.prev.type === NodeTypes.LiquidTag &&
-    node.prev.name === '#'
-  ) {
-    // {% # white-space: normal %}
-    const whitespace = getCssWhitespaceFromComment(node.prev.markup);
     if (whitespace) {
       return whitespace;
     }
@@ -187,14 +159,14 @@ function getNodeCssStyleWhiteSpace(node: AugmentedNode<WithSiblings>): string {
 
     case NodeTypes.RawMarkup:
     case NodeTypes.YAMLFrontmatter:
-    case NodeTypes.LiquidRawTag:
+    case NodeTypes.TwigRawTag:
       return 'pre';
 
-    case NodeTypes.LiquidTag:
-      return CSS_WHITE_SPACE_LIQUID_TAGS[node.name] || CSS_WHITE_SPACE_DEFAULT;
+    case NodeTypes.TwigTag:
+      return CSS_WHITE_SPACE_TWIG_TAGS[node.name] || CSS_WHITE_SPACE_DEFAULT;
 
-    case NodeTypes.LiquidBranch:
-    case NodeTypes.LiquidDrop:
+    case NodeTypes.TwigBranch:
+    case NodeTypes.TwigDrop:
       return CSS_WHITE_SPACE_DEFAULT;
 
     case NodeTypes.AttrDoubleQuoted:
@@ -210,19 +182,17 @@ function getNodeCssStyleWhiteSpace(node: AugmentedNode<WithSiblings>): string {
     case NodeTypes.Document:
       return CSS_WHITE_SPACE_DEFAULT;
 
-    case NodeTypes.LiquidVariable:
-    case NodeTypes.LiquidFilter:
+    case NodeTypes.TwigVariable:
+    case NodeTypes.TwigFilter:
     case NodeTypes.NamedArgument:
-    case NodeTypes.LiquidLiteral:
+    case NodeTypes.TwigLiteral:
     case NodeTypes.String:
     case NodeTypes.Number:
     case NodeTypes.Range:
     case NodeTypes.VariableLookup:
-    case NodeTypes.AssignMarkup:
-    case NodeTypes.CycleMarkup:
     case NodeTypes.ForMarkup:
-    case NodeTypes.RenderMarkup:
-    case NodeTypes.RenderVariableExpression:
+    case NodeTypes.IncludeMarkup:
+    case NodeTypes.IncludeVariableExpression:
     case NodeTypes.LogicalExpression:
     case NodeTypes.Comparison:
       return 'should not be relevant';

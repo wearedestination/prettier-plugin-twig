@@ -44,50 +44,35 @@ export const CSS_DISPLAY_TAGS: Record<string, string> = {
   optgroup: 'block',
 };
 
-export const CSS_DISPLAY_LIQUID_TAGS: Record<string, string> = {
+export const CSS_DISPLAY_TWIG_TAGS: Record<string, string> = {
   // control flow tags
   if: 'inline',
-  unless: 'inline',
   else: 'inline',
   elseif: 'inline',
-  elsif: 'inline',
-  case: 'inline',
-  when: 'inline',
 
-  // iteration tags,
+  // iteration tags
   for: 'inline',
-  cycle: 'inline',
-  tablerow: 'block',
-  break: 'none',
-  continue: 'none',
 
-  // theme tags
-  comment: 'none',
-  echo: 'inline',
-  form: 'block',
-  layout: 'none',
-  liquid: 'inline',
-  raw: 'inline',
-  render: 'inline',
+  // template tags
   include: 'inline',
-  section: 'block',
-  style: 'none',
+  raw: 'inline',
+  verbatim: 'inline',
 
-  // variable tags
-  assign: 'none',
-  capture: 'inline',
-  increment: 'inline',
-  decrement: 'inline',
+  // asset tags
+  css: 'none',
+  js: 'none',
+  script: 'none',
+  style: 'none',
 };
 
-export const CSS_DISPLAY_LIQUID_DEFAULT = 'inline';
+export const CSS_DISPLAY_TWIG_DEFAULT = 'inline';
 
 export const CSS_DISPLAY_DEFAULT = 'inline';
 export const CSS_WHITE_SPACE_TAGS: Record<string, string> =
   getCssStyleTags('white-space');
 export const CSS_WHITE_SPACE_DEFAULT = 'normal';
 
-export const CSS_WHITE_SPACE_LIQUID_TAGS: Record<string, string> = {
-  capture: 'pre',
+export const CSS_WHITE_SPACE_TWIG_TAGS: Record<string, string> = {
   raw: 'pre',
+  verbatim: 'pre',
 };

@@ -2,11 +2,11 @@ import { doc } from 'prettier';
 import { locStart, locEnd } from '~/utils';
 import {
   AstPath,
-  LiquidAstPath,
-  LiquidHtmlNode,
-  LiquidParserOptions,
-  LiquidPrinter,
-  LiquidPrinterArgs,
+  TwigAstPath,
+  TwigHtmlNode,
+  TwigParserOptions,
+  TwigPrinter,
+  TwigPrinterArgs,
   NodeTypes,
 } from '~/types';
 import {
@@ -16,7 +16,7 @@ import {
   forceNextEmptyLine,
   hasPrettierIgnore,
   isEmpty,
-  isLiquidNode,
+  isTwigNode,
   hasNoCloseMarker,
   isTextLikeNode,
   preferHardlineAsLeadingSpaces,
@@ -37,10 +37,10 @@ const {
 const { replaceEndOfLine } = doc.utils as any;
 
 function printChild(
-  childPath: LiquidAstPath,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
-  args: LiquidPrinterArgs,
+  childPath: TwigAstPath,
+  options: TwigParserOptions,
+  print: TwigPrinter,
+  args: TwigPrinterArgs,
 ) {
   const child = childPath.getValue();
 
@@ -69,7 +69,7 @@ function printChild(
     //
     // The gist: We might pretty-print something like this:
     //   <!-- prettier-ignore -->
-    //   <b>{%cycle a,b,c%}</b
+    //   <b>{{ cycle(a, b) }}</b
     //   >hi
     // Which would mean the closing tag is '</b\n  >'
     //
@@ -90,8 +90,8 @@ function printChild(
 }
 
 function printBetweenLine(
-  prevNode: LiquidHtmlNode | undefined,
-  nextNode: LiquidHtmlNode | undefined,
+  prevNode: TwigHtmlNode | undefined,
+  nextNode: TwigHtmlNode | undefined,
 ) {
   if (!prevNode || !nextNode) return '';
 
@@ -153,10 +153,7 @@ function printBetweenLine(
   return nextNode.hasLeadingWhitespace ? line : softline;
 }
 
-export type HasChildren = Extract<
-  LiquidHtmlNode,
-  { children?: LiquidHtmlNode[] }
->;
+export type HasChildren = Extract<TwigHtmlNode, { children?: TwigHtmlNode[] }>;
 
 type Whitespace =
   | doc.builders.Line
@@ -193,9 +190,9 @@ interface WhitespaceBetweenNode {
 // This code is adapted from prettier's language-html plugin.
 export function printChildren(
   path: AstPath<HasChildren>,
-  options: LiquidParserOptions,
-  print: LiquidPrinter,
-  args: LiquidPrinterArgs,
+  options: TwigParserOptions,
+  print: TwigPrinter,
+  args: TwigPrinterArgs,
 ) {
   const node = path.getValue();
 
@@ -255,7 +252,7 @@ export function printChildren(
    */
   const whitespaceBetweenNode = path.map(
     (
-      childPath: AstPath<LiquidHtmlNode>,
+      childPath: AstPath<TwigHtmlNode>,
       childIndex: number,
     ): WhitespaceBetweenNode => {
       const childNode = childPath.getValue();
@@ -286,7 +283,7 @@ export function printChildren(
           leadingHardlines.push(hardline);
         } else {
           if (isTextLikeNode(childNode.prev)) {
-            if (isLiquidNode(childNode) && prevBetweenLine === softline) {
+            if (isTwigNode(childNode) && prevBetweenLine === softline) {
               leadingDependentWhitespace.push(
                 prevBetweenLine as typeof softline,
               );

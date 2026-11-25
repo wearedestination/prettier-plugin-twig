@@ -1,41 +1,41 @@
 import { expect } from 'chai';
-import { toLiquidHtmlAST, toLiquidAST, LiquidHtmlNode } from '~/parser/stage-2-ast';
+import { toTwigHtmlAST, toTwigAST, TwigHtmlNode } from '~/parser/stage-2-ast';
 import { deepGet } from '~/utils';
 
 describe('Unit: Stage 2 (AST)', () => {
   let ast: any;
-  describe('Unit: toLiquidHtmlAST(text) and toLiquidAST(text)', () => {
+  describe('Unit: toTwigHtmlAST(text) and toTwigAST(text)', () => {
     [
       {
-        title: 'toLiquidHtmlAST(text)',
-        fn: toLiquidHtmlAST,
+        title: 'toTwigHtmlAST(text)',
+        fn: toTwigHtmlAST,
       },
       {
-        title: 'toLiquidAST(text)',
-        fn: toLiquidAST,
+        title: 'toTwigAST(text)',
+        fn: toTwigAST,
       },
     ].forEach((testContext) => {
       const title = testContext.title;
       const toAST = testContext.fn;
 
-      describe(`${title} - Unit: LiquidDrop`, () => {
-        it('should transform a base case Liquid Drop into a LiquidDrop', () => {
+      describe(`${title} - Unit: TwigDrop`, () => {
+        it('should transform a base case Twig Drop into a TwigDrop', () => {
           ast = toAST('{{ !-asd }}');
           expectPath(ast, 'children.0').to.exist;
-          expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
+          expectPath(ast, 'children.0.type').to.eql('TwigDrop');
           expectPath(ast, 'children.0.markup').to.eql('!-asd');
           expectPosition(ast, 'children.0');
         });
 
-        it('should parse strings as LiquidVariable > String', () => {
+        it('should parse strings as TwigVariable > String', () => {
           [
             { expression: `"string o' string"`, value: `string o' string`, single: false },
             { expression: `'He said: "hi!"'`, value: `He said: "hi!"`, single: true },
           ].forEach(({ expression, value, single }) => {
             ast = toAST(`{{ ${expression} }}`);
             expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.eql('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.eql('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.eql(expression);
             expectPath(ast, 'children.0.markup.expression.type').to.eql('String');
             expectPath(ast, 'children.0.markup.expression.value').to.eql(value);
@@ -46,7 +46,7 @@ describe('Unit: Stage 2 (AST)', () => {
           });
         });
 
-        it('should parse numbers as LiquidVariable > Number', () => {
+        it('should parse numbers as TwigVariable > Number', () => {
           [
             { expression: `1`, value: '1' },
             { expression: `1.02`, value: '1.02' },
@@ -56,8 +56,8 @@ describe('Unit: Stage 2 (AST)', () => {
           ].forEach(({ expression, value }) => {
             ast = toAST(`{{ ${expression} }}`);
             expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.eql('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.eql('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.eql(expression);
             expectPath(ast, 'children.0.markup.expression.type').to.eql('Number');
             expectPath(ast, 'children.0.markup.expression.value').to.eql(value);
@@ -67,7 +67,7 @@ describe('Unit: Stage 2 (AST)', () => {
           });
         });
 
-        it('should parse numbers as LiquidVariable > LiquidLiteral', () => {
+        it('should parse numbers as TwigVariable > TwigLiteral', () => {
           [
             { expression: `nil`, value: null },
             { expression: `null`, value: null },
@@ -77,10 +77,10 @@ describe('Unit: Stage 2 (AST)', () => {
           ].forEach(({ expression, value }) => {
             ast = toAST(`{{ ${expression} }}`);
             expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.eql('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.eql('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.eql(expression);
-            expectPath(ast, 'children.0.markup.expression.type').to.eql('LiquidLiteral');
+            expectPath(ast, 'children.0.markup.expression.type').to.eql('TwigLiteral');
             expectPath(ast, 'children.0.markup.expression.keyword').to.eql(expression);
             expectPath(ast, 'children.0.markup.expression.value').to.eql(value);
             expectPosition(ast, 'children.0');
@@ -89,7 +89,7 @@ describe('Unit: Stage 2 (AST)', () => {
           });
         });
 
-        it('should parse ranges as LiquidVariable > Range', () => {
+        it('should parse ranges as TwigVariable > Range', () => {
           [
             {
               expression: `(0..5)`,
@@ -103,14 +103,14 @@ describe('Unit: Stage 2 (AST)', () => {
             },
             {
               expression: `(true..false)`,
-              start: { value: true, type: 'LiquidLiteral' },
-              end: { value: false, type: 'LiquidLiteral' },
+              start: { value: true, type: 'TwigLiteral' },
+              end: { value: false, type: 'TwigLiteral' },
             },
           ].forEach(({ expression, start, end }) => {
             ast = toAST(`{{ ${expression} }}`);
             expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.eql('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.eql('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.eql(expression);
             expectPath(ast, 'children.0.markup.expression.type').to.eql('Range');
             expectPath(ast, 'children.0.markup.expression.start.type').to.eql(start.type);
@@ -131,7 +131,7 @@ describe('Unit: Stage 2 (AST)', () => {
           name: string | undefined;
         }
 
-        it('should parse variable lookups as LiquidVariable > VariableLookup', () => {
+        it('should parse variable lookups as TwigVariable > VariableLookup', () => {
           const v = (name: string, lookups: (string | number | Lookup)[] = []): Lookup => ({
             type: 'VariableLookup',
             name,
@@ -155,8 +155,8 @@ describe('Unit: Stage 2 (AST)', () => {
           ].forEach(({ expression, name, lookups }) => {
             ast = toAST(`{{ ${expression} }}`);
             expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.eql('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.eql('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.eql(expression);
             expectPath(ast, 'children.0.markup.expression.type').to.eql('VariableLookup');
             expectPath(ast, 'children.0.markup.expression.name').to.eql(name);
@@ -246,14 +246,14 @@ describe('Unit: Stage 2 (AST)', () => {
             },
           ].forEach(({ expression, filters }) => {
             ast = toAST(`{{ 'hello' ${expression} }}`);
-            expectPath(ast, 'children.0.type').to.equal('LiquidDrop');
-            expectPath(ast, 'children.0.markup.type').to.equal('LiquidVariable');
+            expectPath(ast, 'children.0.type').to.equal('TwigDrop');
+            expectPath(ast, 'children.0.markup.type').to.equal('TwigVariable');
             expectPath(ast, 'children.0.markup.rawSource').to.equal(`'hello' ` + expression);
             expectPath(ast, 'children.0.markup.filters').to.have.lengthOf(filters.length);
             filters.forEach((filter, i) => {
               expectPath(ast, `children.0.markup.filters.${i}`).to.exist;
               expectPath(ast, `children.0.markup.filters.${i}.type`).to.equal(
-                'LiquidFilter',
+                'TwigFilter',
                 expression,
               );
               expectPath(ast, `children.0.markup.filters.${i}.name`).to.equal(filter.name);
@@ -298,11 +298,11 @@ describe('Unit: Stage 2 (AST)', () => {
         });
       });
 
-      describe(`${title} - Case: LiquidTag`, () => {
-        it('should transform a basic Liquid Tag into a LiquidTag', () => {
+      describe(`${title} - Case: TwigTag`, () => {
+        it('should transform a basic Twig Tag into a TwigTag', () => {
           ast = toAST('{% name %}{% if -%}{%- endif %}');
           expectPath(ast, 'children.0').to.exist;
-          expectPath(ast, 'children.0.type').to.eql('LiquidTag');
+          expectPath(ast, 'children.0.type').to.eql('TwigTag');
           expectPath(ast, 'children.0.name').to.eql('name');
           expectPath(ast, 'children.0.markup').to.eql('');
           expectPath(ast, 'children.0.children').to.be.undefined;
@@ -313,90 +313,27 @@ describe('Unit: Stage 2 (AST)', () => {
           expectPosition(ast, 'children.0');
         });
 
-        it('should parse echo tags', () => {
-          [
-            { expression: `"hi"`, expressionType: 'String', expressionValue: 'hi', filters: [] },
-            { expression: `x | f`, expressionType: 'VariableLookup', filters: ['f'] },
-          ].forEach(({ expression, expressionType, expressionValue, filters }) => {
-            ast = toAST(`{% echo ${expression} -%}`);
-            expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-            expectPath(ast, 'children.0.name').to.eql('echo');
-            expectPath(ast, 'children.0.markup.type').to.eql('LiquidVariable');
-            expectPath(ast, 'children.0.markup.expression.type').to.eql(expressionType);
-            if (expressionValue)
-              expectPath(ast, 'children.0.markup.expression.value').to.eql(expressionValue);
-            expectPath(ast, 'children.0.markup.filters').to.have.lengthOf(filters.length);
-            expectPath(ast, 'children.0.children').to.be.undefined;
-            expectPath(ast, 'children.0.whitespaceStart').to.eql('');
-            expectPath(ast, 'children.0.whitespaceEnd').to.eql('-');
-            expectPath(ast, 'children.0.delimiterWhitespaceStart').to.eql(undefined);
-            expectPath(ast, 'children.0.delimiterWhitespaceEnd').to.eql(undefined);
-            expectPosition(ast, 'children.0');
-            expectPosition(ast, 'children.0.markup');
-            expectPosition(ast, 'children.0.markup.expression');
-          });
-        });
-
-        it('should parse assign tags', () => {
+        it('should parse include tags', () => {
           [
             {
-              expression: `x = "hi"`,
-              name: 'x',
-              expressionType: 'String',
-              expressionValue: 'hi',
-              filters: [],
-            },
-            {
-              expression: `z = y | f`,
-              name: 'z',
-              expressionType: 'VariableLookup',
-              filters: ['f'],
-            },
-          ].forEach(({ expression, name, expressionType, expressionValue, filters }) => {
-            ast = toAST(`{% assign ${expression} -%}`);
-            expectPath(ast, 'children.0').to.exist;
-            expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-            expectPath(ast, 'children.0.name').to.eql('assign');
-            expectPath(ast, 'children.0.markup.type').to.eql('AssignMarkup');
-            expectPath(ast, 'children.0.markup.name').to.eql(name);
-            expectPath(ast, 'children.0.markup.value.expression.type').to.eql(expressionType);
-            if (expressionValue)
-              expectPath(ast, 'children.0.markup.value.expression.value').to.eql(expressionValue);
-            expectPath(ast, 'children.0.markup.value.filters').to.have.lengthOf(filters.length);
-            expectPath(ast, 'children.0.children').to.be.undefined;
-            expectPath(ast, 'children.0.whitespaceStart').to.eql('');
-            expectPath(ast, 'children.0.whitespaceEnd').to.eql('-');
-            expectPath(ast, 'children.0.delimiterWhitespaceStart').to.eql(undefined);
-            expectPath(ast, 'children.0.delimiterWhitespaceEnd').to.eql(undefined);
-            expectPosition(ast, 'children.0');
-            expectPosition(ast, 'children.0.markup');
-            expectPosition(ast, 'children.0.markup.value');
-            expectPosition(ast, 'children.0.markup.value.expression');
-          });
-        });
-
-        it('should parse render tags', () => {
-          [
-            {
-              expression: `"snippet"`,
-              snippetType: 'String',
+              expression: `"template"`,
+              templateType: 'String',
               alias: null,
-              renderVariableExpression: null,
+              includeVariableExpression: null,
               namedArguments: [],
             },
             {
-              expression: `"snippet" as foo`,
-              snippetType: 'String',
+              expression: `"template" as foo`,
+              templateType: 'String',
               alias: 'foo',
-              renderVariableExpression: null,
+              includeVariableExpression: null,
               namedArguments: [],
             },
             {
-              expression: `"snippet" with "string" as foo`,
-              snippetType: 'String',
+              expression: `"template" with "string" as foo`,
+              templateType: 'String',
               alias: 'foo',
-              renderVariableExpression: {
+              includeVariableExpression: {
                 kind: 'with',
                 name: {
                   type: 'String',
@@ -405,10 +342,10 @@ describe('Unit: Stage 2 (AST)', () => {
               namedArguments: [],
             },
             {
-              expression: `"snippet" for products as product`,
-              snippetType: 'String',
+              expression: `"template" for products as product`,
+              templateType: 'String',
               alias: 'product',
-              renderVariableExpression: {
+              includeVariableExpression: {
                 kind: 'for',
                 name: {
                   type: 'VariableLookup',
@@ -418,9 +355,9 @@ describe('Unit: Stage 2 (AST)', () => {
             },
             {
               expression: `variable with "string" as foo, key1: val1, key2: "hi"`,
-              snippetType: 'VariableLookup',
+              templateType: 'VariableLookup',
               alias: 'foo',
-              renderVariableExpression: {
+              includeVariableExpression: {
                 kind: 'with',
                 name: {
                   type: 'String',
@@ -432,21 +369,21 @@ describe('Unit: Stage 2 (AST)', () => {
               ],
             },
           ].forEach(
-            ({ expression, snippetType, renderVariableExpression, alias, namedArguments }) => {
-              ast = toAST(`{% render ${expression} -%}`);
-              expectPath(ast, 'children.0.type').to.equal('LiquidTag');
-              expectPath(ast, 'children.0.name').to.equal('render');
-              expectPath(ast, 'children.0.markup.type').to.equal('RenderMarkup');
-              expectPath(ast, 'children.0.markup.snippet.type').to.equal(snippetType);
-              if (renderVariableExpression) {
+            ({ expression, templateType, includeVariableExpression, alias, namedArguments }) => {
+              ast = toAST(`{% include ${expression} -%}`);
+              expectPath(ast, 'children.0.type').to.equal('TwigTag');
+              expectPath(ast, 'children.0.name').to.equal('include');
+              expectPath(ast, 'children.0.markup.type').to.equal('IncludeMarkup');
+              expectPath(ast, 'children.0.markup.template.type').to.equal(templateType);
+              if (includeVariableExpression) {
                 expectPath(ast, 'children.0.markup.variable.type').to.equal(
-                  'RenderVariableExpression',
+                  'IncludeVariableExpression',
                 );
                 expectPath(ast, 'children.0.markup.variable.kind').to.equal(
-                  renderVariableExpression.kind,
+                  includeVariableExpression.kind,
                 );
                 expectPath(ast, 'children.0.markup.variable.name.type').to.equal(
-                  renderVariableExpression.name.type,
+                  includeVariableExpression.name.type,
                 );
                 expectPosition(ast, 'children.0.markup.variable');
                 expectPosition(ast, 'children.0.markup.variable.name');
@@ -471,7 +408,7 @@ describe('Unit: Stage 2 (AST)', () => {
         });
 
         it('should parse conditional tags into conditional expressions', () => {
-          ['if', 'unless'].forEach((tagName) => {
+          ['if'].forEach((tagName) => {
             [
               {
                 expression: 'a',
@@ -509,7 +446,7 @@ describe('Unit: Stage 2 (AST)', () => {
               },
             ].forEach(({ expression, markup }) => {
               ast = toAST(`{% ${tagName} ${expression} -%}{% end${tagName} %}`);
-              expectPath(ast, 'children.0.type').to.equal('LiquidTag');
+              expectPath(ast, 'children.0.type').to.equal('TwigTag');
               expectPath(ast, 'children.0.name').to.equal(tagName);
               let cursor: any = markup;
               let prefix = '';
@@ -556,73 +493,39 @@ describe('Unit: Stage 2 (AST)', () => {
         });
       });
 
-      it(`${title} - should parse liquid inline comments`, () => {
+      it(`${title} - should parse twig inline comments`, () => {
         ast = toAST(`{# #}`);
         expectPath(ast, 'children.0').to.exist;
-        expectPath(ast, 'children.0.type').to.eql('LiquidTag');
+        expectPath(ast, 'children.0.type').to.eql('TwigTag');
         expectPath(ast, 'children.0.name').to.eql('twig');
         expectPath(ast, 'children.0.markup').to.eql('');
 
         ast = toAST(`{# hello world #}`);
         expectPath(ast, 'children.0').to.exist;
-        expectPath(ast, 'children.0.type').to.eql('LiquidTag');
+        expectPath(ast, 'children.0.type').to.eql('TwigTag');
         expectPath(ast, 'children.0.name').to.eql('twig');
         expectPath(ast, 'children.0.markup').to.eql('hello world');
       });
 
-      it(`${title} - should parse liquid case as branches`, () => {
-        ast = toAST(`{% case A %}{% when A %}A{% when "B" %}B{% else    %}C{% endcase %}`);
+      it(`${title} - should parse twig ifs as branches`, () => {
+        ast = toAST(`{% if A %}A{% elseif B %}B{% else %}C{% endif %}`);
         expectPath(ast, 'children.0').to.exist;
-        expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-        expectPath(ast, 'children.0.name').to.eql('case');
-
-        // There's an empty child node between the case and first when. That's OK (?)
-        // What if there's whitespace? I think that's a printer problem. If
-        // there's freeform text we should somehow catch it.
-        expectPath(ast, 'children.0.children.0').to.exist;
-        expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
-        expectPath(ast, 'children.0.children.0.name').to.eql(null);
-
-        expectPath(ast, 'children.0.children.1').to.exist;
-        expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
-        expectPath(ast, 'children.0.children.1.name').to.eql('when');
-        expectPath(ast, 'children.0.children.1.markup').to.have.lengthOf(1);
-        expectPath(ast, 'children.0.children.1.markup.0.type').to.equal('VariableLookup');
-        expectPath(ast, 'children.0.children.1.children.0.type').to.eql('TextNode');
-        expectPath(ast, 'children.0.children.1.children.0.value').to.eql('A');
-
-        expectPath(ast, 'children.0.children.2.type').to.eql('LiquidBranch');
-        expectPath(ast, 'children.0.children.2.name').to.eql('when');
-        expectPath(ast, 'children.0.children.2.markup.0.type').to.equal('String');
-        expectPath(ast, 'children.0.children.2.children.0.type').to.eql('TextNode');
-        expectPath(ast, 'children.0.children.2.children.0.value').to.eql('B');
-
-        expectPath(ast, 'children.0.children.3.type').to.eql('LiquidBranch');
-        expectPath(ast, 'children.0.children.3.name').to.eql('else');
-        expectPath(ast, 'children.0.children.3.markup').to.eql('');
-        expectPath(ast, 'children.0.children.3.children.0.type').to.eql('TextNode');
-        expectPath(ast, 'children.0.children.3.children.0.value').to.eql('C');
-      });
-
-      it(`${title} - should parse liquid ifs as branches`, () => {
-        ast = toAST(`{% if A %}A{% elsif B %}B{% else %}C{% endif %}`);
-        expectPath(ast, 'children.0').to.exist;
-        expectPath(ast, 'children.0.type').to.eql('LiquidTag');
+        expectPath(ast, 'children.0.type').to.eql('TwigTag');
         expectPath(ast, 'children.0.name').to.eql('if');
         expectPath(ast, 'children.0.children.0').to.exist;
-        expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+        expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
         expectPath(ast, 'children.0.children.0.name').to.eql(null);
         expectPath(ast, 'children.0.children.0.markup').to.eql('');
         expectPath(ast, 'children.0.children.0.children.0.type').to.eql('TextNode');
         expectPath(ast, 'children.0.children.0.children.0.value').to.eql('A');
 
-        expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
-        expectPath(ast, 'children.0.children.1.name').to.eql('elsif');
+        expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
+        expectPath(ast, 'children.0.children.1.name').to.eql('elseif');
         expectPath(ast, 'children.0.children.1.markup.type').to.eql('VariableLookup');
         expectPath(ast, 'children.0.children.1.children.0.type').to.eql('TextNode');
         expectPath(ast, 'children.0.children.1.children.0.value').to.eql('B');
 
-        expectPath(ast, 'children.0.children.2.type').to.eql('LiquidBranch');
+        expectPath(ast, 'children.0.children.2.type').to.eql('TwigBranch');
         expectPath(ast, 'children.0.children.2.name').to.eql('else');
         expectPath(ast, 'children.0.children.2.children.0.type').to.eql('TextNode');
         expectPath(ast, 'children.0.children.2.children.0.value').to.eql('C');
@@ -638,11 +541,11 @@ describe('Unit: Stage 2 (AST)', () => {
     });
   });
 
-  describe('Unit: toLiquidHtmlAST(text)', () => {
+  describe('Unit: toTwigHtmlAST(text)', () => {
     let ast: any;
 
     it('should parse HTML attributes', () => {
-      ast = toLiquidHtmlAST(`<img src="https://1234" loading='lazy' disabled checked="">`);
+      ast = toTwigHtmlAST(`<img src="https://1234" loading='lazy' disabled checked="">`);
       expectPath(ast, 'children.0').to.exist;
       expectPath(ast, 'children.0.type').to.eql('HtmlVoidElement');
       expectPath(ast, 'children.0.name').to.eql('img');
@@ -665,14 +568,14 @@ describe('Unit: Stage 2 (AST)', () => {
     });
 
     it('should parse HTML attributes inside tags', () => {
-      ast = toLiquidHtmlAST(
+      ast = toTwigHtmlAST(
         `<img {% if cond %}src="https://1234" loading='lazy'{% else %}disabled{% endif %}>`,
       );
       expectPath(ast, 'children.0').to.exist;
       expectPath(ast, 'children.0.type').to.eql('HtmlVoidElement');
       expectPath(ast, 'children.0.name').to.eql('img');
       expectPath(ast, 'children.0.attributes.0.name').to.eql('if');
-      expectPath(ast, 'children.0.attributes.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.attributes.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.attributes.0.children.0.children.0.type').to.eql(
         'AttrDoubleQuoted',
       );
@@ -681,7 +584,7 @@ describe('Unit: Stage 2 (AST)', () => {
       );
     });
 
-    it('should parse HTML tags with Liquid Drop names', () => {
+    it('should parse HTML tags with Twig Drop names', () => {
       [
         `<{{ node_type }} src="https://1234" loading='lazy' disabled></{{node_type}}>`,
         `<{{ node_type }} src="https://1234" loading='lazy' disabled></{{ node_type }}>`,
@@ -691,11 +594,11 @@ describe('Unit: Stage 2 (AST)', () => {
         `<{{ node_type -}} src="https://1234" loading='lazy' disabled></{{- node_type -}}>`,
         `<{{- node_type -}} src="https://1234" loading='lazy' disabled></{{- node_type -}}>`,
       ].forEach((testCase) => {
-        ast = toLiquidHtmlAST(testCase);
+        ast = toTwigHtmlAST(testCase);
         expectPath(ast, 'children.0').to.exist;
         expectPath(ast, 'children.0.type').to.eql('HtmlElement');
-        expectPath(ast, 'children.0.name.0.type').to.eql('LiquidDrop');
-        expectPath(ast, 'children.0.name.0.markup.type').to.eql('LiquidVariable');
+        expectPath(ast, 'children.0.name.0.type').to.eql('TwigDrop');
+        expectPath(ast, 'children.0.name.0.markup.type').to.eql('TwigVariable');
         expectPath(ast, 'children.0.name.0.markup.rawSource').to.eql('node_type');
         expectPath(ast, 'children.0.attributes.0.name.0.value').to.eql('src');
         expectPath(ast, 'children.0.attributes.0.value.0.type').to.eql('TextNode');
@@ -707,52 +610,50 @@ describe('Unit: Stage 2 (AST)', () => {
       });
     });
 
-    it('should parse HTML tags with compound Liquid Drop names', () => {
-      ast = toLiquidHtmlAST(`<{{ node_type }}--header ></{{node_type}}--header>`);
+    it('should parse HTML tags with compound Twig Drop names', () => {
+      ast = toTwigHtmlAST(`<{{ node_type }}--header ></{{node_type}}--header>`);
       expectPath(ast, 'children.0').to.exist;
       expectPath(ast, 'children.0.type').to.eql('HtmlElement');
-      expectPath(ast, 'children.0.name.0.type').to.eql('LiquidDrop');
-      expectPath(ast, 'children.0.name.0.markup.type').to.eql('LiquidVariable');
+      expectPath(ast, 'children.0.name.0.type').to.eql('TwigDrop');
+      expectPath(ast, 'children.0.name.0.markup.type').to.eql('TwigVariable');
       expectPath(ast, 'children.0.name.0.markup.rawSource').to.eql('node_type');
       expectPath(ast, 'children.0.name.1.value').to.eql('--header');
     });
 
-    it('should parse HTML self-closing elements with compound Liquid Drop names', () => {
-      ast = toLiquidHtmlAST(`<{{ node_type }}--header />`);
+    it('should parse HTML self-closing elements with compound Twig Drop names', () => {
+      ast = toTwigHtmlAST(`<{{ node_type }}--header />`);
       expectPath(ast, 'children.0').to.exist;
       expectPath(ast, 'children.0.type').to.eql('HtmlSelfClosingElement');
-      expectPath(ast, 'children.0.name.0.type').to.eql('LiquidDrop');
-      expectPath(ast, 'children.0.name.0.markup.type').to.eql('LiquidVariable');
+      expectPath(ast, 'children.0.name.0.type').to.eql('TwigDrop');
+      expectPath(ast, 'children.0.name.0.markup.type').to.eql('TwigVariable');
       expectPath(ast, 'children.0.name.0.markup.rawSource').to.eql('node_type');
       expectPath(ast, 'children.0.name.1.value').to.eql('--header');
     });
 
-    it('should allow for at most 2 unclosed nodes in a LiquidBranch', () => {
+    it('should allow for at most 2 unclosed nodes in a TwigBranch', () => {
       // two empty nodes = ok
       let testCases = [
         '{% if cond %}<div>{% endif %}',
         '{% if cond %}{% else %}<div>{% endif %}',
         '{% if cond %}<div>{% else %}{% endif %}',
-        '{% if cond %}{% elsif cond %}<div>{% endif %}',
+        '{% if cond %}{% elseif cond %}<div>{% endif %}',
         '{% if cond %}<div><a>{% endif %}',
         '{% if cond %}{% else %}<div><a>{% endif %}',
-        '{% if cond %}{% elsif cond %}<div><a>{% endif %}',
-        '{% case cond %}{% when %}<div><a>{% endcase %}',
+        '{% if cond %}{% elseif cond %}<div><a>{% endif %}',
       ];
       for (const testCase of testCases) {
-        expect(() => toLiquidHtmlAST(testCase), testCase).not.to.throw();
+        expect(() => toTwigHtmlAST(testCase), testCase).not.to.throw();
       }
 
       // 3 nodes = not ok
       testCases = [
         '{% if cond %}<a><b><c>{% endif %}',
         '{% if cond %}{% else %}<a><b><c>{% endif %}',
-        '{% if cond %}{% elsif cond %}<a><b><c>{% endif %}',
-        '{% case cond %}{% when %}<a><b><c>{% endcase %}',
+        '{% if cond %}{% elseif cond %}<a><b><c>{% endif %}',
       ];
       for (const testCase of testCases) {
-        expect(() => toLiquidHtmlAST(testCase), testCase).to.throw(
-          /Attempting to close LiquidTag '[^']+' before HtmlElement 'c' was closed/,
+        expect(() => toTwigHtmlAST(testCase), testCase).to.throw(
+          /Attempting to close TwigTag '[^']+' before HtmlElement 'c' was closed/,
         );
       }
 
@@ -762,13 +663,12 @@ describe('Unit: Stage 2 (AST)', () => {
         '{% if cond %}<b><a>hi</a>{% endif %}',
         '{% if cond %}{% else %}<a>hi</a><b>{% endif %}',
         '{% if cond %}{% else %}<b><a>hi</a>{% endif %}',
-        '{% if cond %}{% elsif cond %}<a>hi</a><b>{% endif %}',
-        '{% if cond %}{% elsif cond %}<b><a>hi</a>{% endif %}',
-        '{% case cond %}{% when %}<a>hi</a><b>{% endcase %}',
+        '{% if cond %}{% elseif cond %}<a>hi</a><b>{% endif %}',
+        '{% if cond %}{% elseif cond %}<b><a>hi</a>{% endif %}',
       ];
       for (const testCase of testCases) {
-        expect(() => toLiquidHtmlAST(testCase), testCase).to.throw(
-          /Attempting to close LiquidTag '[^']+' before HtmlElement 'b' was closed/,
+        expect(() => toTwigHtmlAST(testCase), testCase).to.throw(
+          /Attempting to close TwigTag '[^']+' before HtmlElement 'b' was closed/,
         );
       }
     });
@@ -783,8 +683,8 @@ describe('Unit: Stage 2 (AST)', () => {
       ];
       for (const testCase of testCases) {
         try {
-          toLiquidHtmlAST(testCase);
-          expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
+          toTwigHtmlAST(testCase);
+          expect(true, `expected ${testCase} to throw TwigHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
           expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message, testCase).to.match(
@@ -800,8 +700,8 @@ describe('Unit: Stage 2 (AST)', () => {
       const testCases = ['<a>', '{% if %}'];
       for (const testCase of testCases) {
         try {
-          toLiquidHtmlAST(testCase);
-          expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
+          toTwigHtmlAST(testCase);
+          expect(true, `expected ${testCase} to throw TwigHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
           expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message).to.match(/Attempting to end parsing before \w+ '[^']+' was closed/);
@@ -815,8 +715,8 @@ describe('Unit: Stage 2 (AST)', () => {
       const testCases = ['</a>', '{% endif %}'];
       for (const testCase of testCases) {
         try {
-          toLiquidHtmlAST(testCase);
-          expect(true, `expected ${testCase} to throw LiquidHTMLCSTParsingError`).to.be.false;
+          toTwigHtmlAST(testCase);
+          expect(true, `expected ${testCase} to throw TwigHTMLCSTParsingError`).to.be.false;
         } catch (e: any) {
           expect(e.name).to.eql('TwigHTMLParsingError');
           expect(e.message).to.match(/Attempting to close \w+ '[^']+' before it was opened/);
@@ -830,8 +730,8 @@ describe('Unit: Stage 2 (AST)', () => {
       const testCases = ['<p><div>', '{% if condition %}', '<script>', '<{{ node_type }}>'];
       for (const testCase of testCases) {
         try {
-          toLiquidHtmlAST(testCase);
-          expect(true, `expected ${testCase} to throw LiquidHTMLASTParsingError`).to.be.false;
+          toTwigHtmlAST(testCase);
+          expect(true, `expected ${testCase} to throw TwigHTMLASTParsingError`).to.be.false;
         } catch (e: any) {
           if (e.name === 'AssertionError') {
             console.log(e);
@@ -843,14 +743,14 @@ describe('Unit: Stage 2 (AST)', () => {
     });
 
     it('should parse html comments as raw', () => {
-      ast = toLiquidHtmlAST(`<!--\n  hello {{ product.name }}\n-->`);
+      ast = toTwigHtmlAST(`<!--\n  hello {{ product.name }}\n-->`);
       expectPath(ast, 'children.0.type').to.eql('HtmlComment');
       expectPath(ast, 'children.0.body').to.eql('hello {{ product.name }}');
       expectPosition(ast, 'children.0');
     });
 
     it('should parse script tags as raw', () => {
-      ast = toLiquidHtmlAST(`<script>\n  const a = {{ product | json }};\n</script>`);
+      ast = toTwigHtmlAST(`<script>\n  const a = {{ product | json }};\n</script>`);
       expectPath(ast, 'children.0.type').to.eql('HtmlRawNode');
       expectPath(ast, 'children.0.name').to.eql('script');
       expectPath(ast, 'children.0.body.type').to.eql('RawMarkup');
@@ -860,7 +760,7 @@ describe('Unit: Stage 2 (AST)', () => {
     });
 
     it('should parse style tags as raw markup', () => {
-      ast = toLiquidHtmlAST(`<style>\n  :root { --bg: {{ settings.bg }}}\n</style>`);
+      ast = toTwigHtmlAST(`<style>\n  :root { --bg: {{ settings.bg }}}\n</style>`);
       expectPath(ast, 'children.0.type').to.eql('HtmlRawNode');
       expectPath(ast, 'children.0.name').to.eql('style');
       expectPath(ast, 'children.0.body.type').to.eql('RawMarkup');
@@ -870,83 +770,74 @@ describe('Unit: Stage 2 (AST)', () => {
     });
   });
 
-  describe('Unit: toLiquidAST(text)', () => {
+  describe('Unit: toTwigAST(text)', () => {
     let ast: any;
 
     it('should parse nested unclosed tags', () => {
-      ast = toLiquidAST('{% for a in b %} <div> {% if true %}');
+      ast = toTwigAST('{% for a in b %} <div> {% if true %}');
 
-      expectPath(ast, 'children.0.type').to.eql('LiquidTag');
+      expectPath(ast, 'children.0.type').to.eql('TwigTag');
       expectPath(ast, 'children.0.name').to.eql('for');
 
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('TextNode');
       expectPath(ast, 'children.0.children.0.children.0.value').to.eql('<div>');
 
-      expectPath(ast, 'children.0.children.0.children.1.type').to.eql('LiquidTag');
+      expectPath(ast, 'children.0.children.0.children.1.type').to.eql('TwigTag');
       expectPath(ast, 'children.0.children.0.children.1.name').to.eql('if');
     });
 
     it('should parse unclosed conditions with assignments', () => {
-      ast = toLiquidAST(`
-        {%- liquid
-          assign var1 = product
+      ast = toTwigAST(`
+        {%- set var1 = product -%}
 
-          if use_variant
-            assign var2 = var1
-            assign var3 = var2
-        -%}
+        {%- if use_variant -%}
+          {%- set var2 = var1 -%}
+          {%- set var3 = var2 -%}
       `);
 
-      expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.0.name').to.eql('liquid');
+      expectPath(ast, 'children.0.type').to.eql('TwigTag');
+      expectPath(ast, 'children.0.name').to.eql('set');
+      expectPath(ast, 'children.0.markup').to.eql('var1 = product');
 
-      expectPath(ast, 'children.0.markup.0.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.0.markup.0.name').to.eql('assign');
-      expectPath(ast, 'children.0.markup.0.markup.name').to.eql('var1');
+      expectPath(ast, 'children.1.type').to.eql('TwigTag');
+      expectPath(ast, 'children.1.name').to.eql('if');
 
-      expectPath(ast, 'children.0.markup.1.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.0.markup.1.name').to.eql('if');
+      expectPath(ast, 'children.1.children.0.children.0.name').to.eql('set');
+      expectPath(ast, 'children.1.children.0.children.0.markup').to.eql('var2 = var1');
 
-      expectPath(ast, 'children.0.markup.1.children.0.children.0.name').to.eql('assign');
-      expectPath(ast, 'children.0.markup.1.children.0.children.0.markup.name').to.eql('var2');
-
-      expectPath(ast, 'children.0.markup.1.children.0.children.1.name').to.eql('assign');
-      expectPath(ast, 'children.0.markup.1.children.0.children.1.markup.name').to.eql('var3');
+      expectPath(ast, 'children.1.children.0.children.1.name').to.eql('set');
+      expectPath(ast, 'children.1.children.0.children.1.markup').to.eql('var3 = var2');
     });
 
     it('should parse unclosed tables with assignments', () => {
-      ast = toLiquidAST(`
-        {%- liquid
-          assign var1 = product
-        -%}
+      ast = toTwigAST(`
+        {%- set var1 = product -%}
         <table>
-          {% tablerow var2 in collections.first.products %}
-            {% assign var3 = var2 %}
+          {% for var2 in collections.first.products %}
+            {% set var3 = var2 %}
             {{ var3.title }}
       `);
 
-      expectPath(ast, 'children.0.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.0.name').to.eql('liquid');
-      expectPath(ast, 'children.0.markup.0.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.0.markup.0.name').to.eql('assign');
-      expectPath(ast, 'children.0.markup.0.markup.name').to.eql('var1');
+      expectPath(ast, 'children.0.type').to.eql('TwigTag');
+      expectPath(ast, 'children.0.name').to.eql('set');
+      expectPath(ast, 'children.0.markup').to.eql('var1 = product');
 
       expectPath(ast, 'children.1.type').to.eql('TextNode');
       expectPath(ast, 'children.1.value').to.eql('<table>');
 
-      expectPath(ast, 'children.2.type').to.eql('LiquidTag');
-      expectPath(ast, 'children.2.name').to.eql('tablerow');
+      expectPath(ast, 'children.2.type').to.eql('TwigTag');
+      expectPath(ast, 'children.2.name').to.eql('for');
     });
 
     it('should parse script tags as a text node', () => {
-      ast = toLiquidAST(`<script>\n  const a = {{ product | json }};\n</script>`);
+      ast = toTwigAST(`<script>\n  const a = {{ product | json }};\n</script>`);
 
       expectPath(ast, 'children.0.type').to.eql('TextNode');
       expectPath(ast, 'children.0.value').to.eql('<script>\n  const a =');
     });
 
     it('should parse style tags as a text node', () => {
-      ast = toLiquidAST(`<style>\n  :root { --bg: {{ settings.bg }}}\n</style>`);
+      ast = toTwigAST(`<style>\n  :root { --bg: {{ settings.bg }}}\n</style>`);
 
       expectPath(ast, 'children.0.type').to.eql('TextNode');
       expectPath(ast, 'children.0.value').to.eql('<style>\n  :root { --bg:');
@@ -954,13 +845,13 @@ describe('Unit: Stage 2 (AST)', () => {
   });
 
   it('should allow for dangling html open tags inside branches when the conditions are right', () => {
-    ['if', 'unless'].forEach((conditional) => {
-      ast = toLiquidHtmlAST(`
+    ['if'].forEach((conditional) => {
+      ast = toTwigHtmlAST(`
         {% ${conditional} condition %}
           <section class="unclosed">
         {% end${conditional} %}
       `);
-      expectPath(ast, 'children.0.children.0.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.equal('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.attributes.0.name.0.value').to.equal(
         'class',
@@ -969,14 +860,14 @@ describe('Unit: Stage 2 (AST)', () => {
         'unclosed',
       );
 
-      ast = toLiquidHtmlAST(`
+      ast = toTwigHtmlAST(`
         {% ${conditional} condition %}
           <section class="unclosed">
         {% else %}
           <section class="unclosed">
         {% end${conditional} %}
       `);
-      expectPath(ast, 'children.0.children.0.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.equal('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.attributes.0.name.0.value').to.equal(
         'class',
@@ -985,7 +876,7 @@ describe('Unit: Stage 2 (AST)', () => {
         'unclosed',
       );
 
-      expectPath(ast, 'children.0.children.1.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.1.children.0.type').to.equal('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.1.children.0.attributes.0.name.0.value').to.equal(
         'class',
@@ -997,37 +888,37 @@ describe('Unit: Stage 2 (AST)', () => {
   });
 
   it('should allow for dangling html close tags inside branches when the conditions are right', () => {
-    ['if', 'unless'].forEach((conditional) => {
-      ast = toLiquidHtmlAST(`
+    ['if'].forEach((conditional) => {
+      ast = toTwigHtmlAST(`
         {% ${conditional} condition %}
           </section>
         {% end${conditional} %}
       `);
-      expectPath(ast, 'children.0.children.0.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.equal('HtmlDanglingMarkerClose');
 
-      ast = toLiquidHtmlAST(`
+      ast = toTwigHtmlAST(`
         {% ${conditional} condition %}
           </section>
         {% else %}
           </main>
         {% end${conditional} %}
       `);
-      expectPath(ast, 'children.0.children.0.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.equal('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.equal('section');
 
-      expectPath(ast, 'children.0.children.1.type').to.equal('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.equal('TwigBranch');
       expectPath(ast, 'children.0.children.1.children.0.type').to.equal('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.1.children.0.name.0.value').to.equal('main');
     });
   });
 
-  function expectPath(ast: LiquidHtmlNode, path: string) {
+  function expectPath(ast: TwigHtmlNode, path: string) {
     return expect(deepGet(path.split('.'), ast));
   }
 
-  function expectPosition(ast: LiquidHtmlNode, path: string) {
+  function expectPosition(ast: TwigHtmlNode, path: string) {
     expectPath(ast, path + '.position.start').to.be.a('number');
     expectPath(ast, path + '.position.end').to.be.a('number');
   }

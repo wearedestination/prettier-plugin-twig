@@ -21,9 +21,7 @@ It should use the preferred quote for unquoted values that contain both quote ch
 
 It should not introduce a conflicting quote inside verbatim blocks
 singleQuote: true
-{% verbatim %}
-<div class="{{ foo('a') }}"></div>
-{% endverbatim %}
+{% verbatim %}<div class="{{ foo('a') }}"></div>{% endverbatim %}
 
 It should still use the opposite quote when text-like values contain the preferred quote
 singleQuote: true

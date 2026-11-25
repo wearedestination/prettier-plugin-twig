@@ -1,9 +1,9 @@
 // A lot in here is adapted from prettier/prettier.
 
-import { HtmlNodeTypes, LiquidNodeTypes, NodeTypes, WithFamily } from '~/types';
+import { HtmlNodeTypes, TwigNodeTypes, NodeTypes, WithFamily } from '~/types';
 import {
   CSS_WHITE_SPACE_DEFAULT,
-  CSS_WHITE_SPACE_LIQUID_TAGS,
+  CSS_WHITE_SPACE_TWIG_TAGS,
   CSS_WHITE_SPACE_TAGS,
 } from '~/constants.evaluate';
 import {
@@ -118,7 +118,7 @@ function isLeadingWhitespaceSensitiveNode(
     return false;
   }
 
-  if (node.type === NodeTypes.LiquidBranch) {
+  if (node.type === NodeTypes.TwigBranch) {
     const isDefaultBranch = node.name === null;
     const hasNoChildren = !!node.firstChild;
     const isParentInnerRightSensitive = isInnerLeftSpaceSensitiveCssDisplay(
@@ -145,7 +145,7 @@ function isLeadingWhitespaceSensitiveNode(
   if (
     node.parentNode &&
     isAttributeNode(node.parentNode) &&
-    node.type === NodeTypes.LiquidDrop
+    node.type === NodeTypes.TwigDrop
   ) {
     return true;
   }
@@ -249,14 +249,14 @@ function isTrailingWhitespaceSensitiveNode(node: AugmentedAstNode): boolean {
     return false;
   }
 
-  if (node.type === NodeTypes.LiquidBranch) {
+  if (node.type === NodeTypes.TwigBranch) {
     const isLastBranch = node.parentNode && node.parentNode.lastChild === node;
     const hasNoLastChild = !node.lastChild;
     const isLastChildTrailingSensitive =
       !!node.lastChild && isTrailingWhitespaceSensitiveNode(node.lastChild);
 
-    // {% if %}{% elsif cond %}<emptythis>{% endif %}
-    // {% if %}{% elsif cond %}this{% endif %}
+    // {% if %}{% elseif cond %}<emptythis>{% endif %}
+    // {% if %}{% elseif cond %}this{% endif %}
     // {% if %}{% else %}<emptythis>{% endif %}
     // {% if %}{% else %}this{% endif %}
     if (isLastBranch) {
@@ -270,10 +270,10 @@ function isTrailingWhitespaceSensitiveNode(node: AugmentedAstNode): boolean {
 
     // {% if %}<emptythis>{% endif %}
     // {% if %}<emptythis>{% else %}{% endif %}
-    // {% if %}{% elsif cond %}<emptythis>{% else %}{% endif %}
+    // {% if %}{% elseif cond %}<emptythis>{% else %}{% endif %}
     // {% if %}this{% endif %}
     // {% if %}this{% else %}{% endif %}
-    // {% if %}{% elsif cond %}this{% else %}{% endif %}
+    // {% if %}{% elseif cond %}this{% else %}{% endif %}
     return hasNoLastChild || isLastChildTrailingSensitive;
   }
 
@@ -286,7 +286,7 @@ function isTrailingWhitespaceSensitiveNode(node: AugmentedAstNode): boolean {
   if (
     node.parentNode &&
     isAttributeNode(node.parentNode) &&
-    node.type === NodeTypes.LiquidDrop
+    node.type === NodeTypes.TwigDrop
   ) {
     return true;
   }
@@ -326,7 +326,7 @@ function isTrailingWhitespaceSensitiveNode(node: AugmentedAstNode): boolean {
   //  - this node is pre-like (whitespace outside pre tags is irrelevant)
   //  - this node is script-like (since the whitespace following a script is irrelevant)
   //  - the parent is not (inner) trailing whitespace sensitive (e.g. block)
-  //  - the parent is trimming the inner right (e.g. {% form %} hello {%- endform %})
+  //  - the parent is trimming the inner right (e.g. {% block %} hello {%- endblock %})
   //  - the node is an attribute node
   //
   // prettier-ignore
@@ -387,7 +387,7 @@ function hasDanglingWhitespace(node: AugmentedAstNode): boolean {
   } else if (!node.children) {
     return false;
   } else if (
-    node.type === NodeTypes.LiquidTag &&
+    node.type === NodeTypes.TwigTag &&
     isBranchedTag(node) &&
     node.children.length === 1
   ) {
@@ -400,7 +400,7 @@ function hasDanglingWhitespace(node: AugmentedAstNode): boolean {
 
 function hasLeadingWhitespace(node: AugmentedAstNode): boolean {
   // Edge case for default branch.
-  if (node.type === NodeTypes.LiquidBranch && !node.prev) {
+  if (node.type === NodeTypes.TwigBranch && !node.prev) {
     return node.firstChild
       ? hasLeadingWhitespace(node.firstChild)
       : hasDanglingWhitespace(node);
@@ -409,7 +409,7 @@ function hasLeadingWhitespace(node: AugmentedAstNode): boolean {
 }
 
 function hasTrailingWhitespace(node: AugmentedAstNode): boolean {
-  if (node.type === NodeTypes.LiquidBranch) {
+  if (node.type === NodeTypes.TwigBranch) {
     return node.lastChild
       ? hasTrailingWhitespace(node.lastChild)
       : hasDanglingWhitespace(node);
@@ -430,15 +430,15 @@ export function isHtmlNode(node: AugmentedAstNode): node is HtmlNode {
   return HtmlNodeTypes.includes(node.type as any);
 }
 
-type LiquidNode = Extract<
+type TwigNode = Extract<
   AugmentedAstNode,
-  { type: (typeof LiquidNodeTypes)[number] }
+  { type: (typeof TwigNodeTypes)[number] }
 >;
 
-export function isLiquidNode(
+export function isTwigNode(
   node: AugmentedAstNode | undefined,
-): node is LiquidNode {
-  return !!node && LiquidNodeTypes.includes(node.type as any);
+): node is TwigNode {
+  return !!node && TwigNodeTypes.includes(node.type as any);
 }
 
 export function isParentNode(node: AugmentedAstNode): node is ParentNode {
@@ -450,12 +450,12 @@ export function isTrimmingOuterRight(
 ): boolean {
   if (!node) return false;
   switch (node.type) {
-    case NodeTypes.LiquidRawTag:
-    case NodeTypes.LiquidTag: // {% if a %}{% endif -%}, {% assign x -%}
+    case NodeTypes.TwigRawTag:
+    case NodeTypes.TwigTag: // {% if a %}{% endif -%}, {% set x -%}
       return (node.delimiterWhitespaceEnd ?? node.whitespaceEnd) === '-';
-    case NodeTypes.LiquidBranch:
+    case NodeTypes.TwigBranch:
       return false;
-    case NodeTypes.LiquidDrop: // {{ foo -}}
+    case NodeTypes.TwigDrop: // {{ foo -}}
       return node.whitespaceEnd === '-';
     default:
       return false;
@@ -467,10 +467,10 @@ export function isTrimmingOuterLeft(
 ): boolean {
   if (!node) return false;
   switch (node.type) {
-    case NodeTypes.LiquidRawTag:
-    case NodeTypes.LiquidTag: // {%- if a %}{% endif %}, {%- assign x = 1 %}
-    case NodeTypes.LiquidBranch: // {%- else %}
-    case NodeTypes.LiquidDrop: // {{- 'val' }}
+    case NodeTypes.TwigRawTag:
+    case NodeTypes.TwigTag: // {%- if a %}{% endif %}, {%- set x = 1 %}
+    case NodeTypes.TwigBranch: // {%- else %}
+    case NodeTypes.TwigDrop: // {{- 'val' }}
       return node.whitespaceStart === '-';
     default:
       return false;
@@ -482,13 +482,13 @@ export function isTrimmingInnerLeft(
 ): boolean {
   if (!node) return false;
   switch (node.type) {
-    case NodeTypes.LiquidRawTag:
-    case NodeTypes.LiquidTag: // {% form a -%}{% endform %}
+    case NodeTypes.TwigRawTag:
+    case NodeTypes.TwigTag: // {% block a -%}{% endblock %}
       if (node.delimiterWhitespaceEnd === undefined) return false;
       return node.whitespaceEnd === '-';
-    case NodeTypes.LiquidBranch: // {% if a -%}{% else -%}{% endif %}
+    case NodeTypes.TwigBranch: // {% if a -%}{% else -%}{% endif %}
       // This branch should never happen.
-      if (!node.parentNode || node.parentNode.type !== NodeTypes.LiquidTag) {
+      if (!node.parentNode || node.parentNode.type !== NodeTypes.TwigTag) {
         return false;
       }
 
@@ -499,7 +499,7 @@ export function isTrimmingInnerLeft(
 
       // Otherwise gets it from the delimiter. e.g. {% else -%}
       return node.whitespaceEnd === '-';
-    case NodeTypes.LiquidDrop:
+    case NodeTypes.TwigDrop:
     default:
       return false;
   }
@@ -510,13 +510,13 @@ export function isTrimmingInnerRight(
 ): boolean {
   if (!node) return false;
   switch (node.type) {
-    case NodeTypes.LiquidRawTag:
-    case NodeTypes.LiquidTag: // {% if a %}{%- endif %}
+    case NodeTypes.TwigRawTag:
+    case NodeTypes.TwigTag: // {% if a %}{%- endif %}
       if (node.delimiterWhitespaceStart === undefined) return false;
       return node.delimiterWhitespaceStart === '-';
-    case NodeTypes.LiquidBranch:
+    case NodeTypes.TwigBranch:
       // This branch should never happen.
-      if (!node.parentNode || node.parentNode.type !== NodeTypes.LiquidTag) {
+      if (!node.parentNode || node.parentNode.type !== NodeTypes.TwigTag) {
         return false;
       }
 
@@ -527,7 +527,7 @@ export function isTrimmingInnerRight(
 
       // Otherwise gets it from the next branch
       return isTrimmingOuterLeft(node.next);
-    case NodeTypes.LiquidDrop:
+    case NodeTypes.TwigDrop:
     default:
       return false;
   }
@@ -566,10 +566,10 @@ function getNodeCssStyleWhiteSpace(node: AugmentedAstNode) {
     (isHtmlNode(node) &&
       typeof node.name === 'string' &&
       CSS_WHITE_SPACE_TAGS[node.name]) ||
-    (isLiquidNode(node) &&
+    (isTwigNode(node) &&
       'name' in node &&
       typeof node.name === 'string' &&
-      CSS_WHITE_SPACE_LIQUID_TAGS[node.name]) ||
+      CSS_WHITE_SPACE_TWIG_TAGS[node.name]) ||
     CSS_WHITE_SPACE_DEFAULT
   );
 }

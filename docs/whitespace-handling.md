@@ -96,6 +96,6 @@ If you're wondering how we determine if a node **is whitespace sensitive**, see 
 
 If you're wondering how we do **tag marker borrowing**, see [print/tag.ts](../src/printer/print/tag.ts).
 
-If you're wondering how we do **conditional whitespace stripping**, see [print/liquid.ts](../src/printer/print/liquid.ts).
+If you're wondering how we do **conditional whitespace stripping**, see [print/twig.ts](../src/printer/print/twig.ts).
 
 If you're wondering **what kind of whitespace we use between nodes**, see [print/children.ts](../src/printer/print/children.ts).

@@ -14,8 +14,8 @@ It should pretty print json inside a script tag
 
 It should pretty print typescript
 <script type="application/x-typescript">
-type Node = LiquidNode|HtmlNode|TextNode
-type LiquidNode = LiquidDrop|LiquidTag
+type Node = TwigNode|HtmlNode|TextNode
+type TwigNode = TwigDrop|TwigTag
 function print(node:Node){return node.toString();}
 </script>
 
@@ -31,7 +31,7 @@ It should pretty print markdown (?) why not!?
 </div>
 
 It should fallback to reindenting when it can't parse the source
-(e.g. because of Liquid in JS)
+(e.g. because of Twig in JS)
 printWidth: 20
 <script>
 function main(){console.log({{ drop }});}const x = 100 > 42 ? x : y;
@@ -51,3 +51,57 @@ embeddedSingleQuote: false
 <script>
 console.log('hello');
 </script>
+
+It should not format Twig output as JS blocks
+<script>
+{{ output }}
+</script>
+
+It should not format Twig output as TypeScript blocks
+<script type="application/x-typescript">
+{{ output }}
+</script>
+
+It should not reindent template literals next to Twig
+<div>
+<script>
+   foo(`a
+     b {{ x | y }}`, {{ z }})
+</script>
+</div>
+
+It should not reindent template literals when it can't parse the source
+<div>
+<script>
+   foo(`a
+     b`
+</script>
+</div>
+
+It should reindent everything outside of a template literal
+<div>
+<script>
+const a = `x`;
+if (a) {
+  c('{{ z }}');
+}
+</script>
+<script>
+const a = '{{ z }}';
+if (a) {
+  c(`x
+    y`);
+  d();
+}
+</script>
+</div>
+
+It should keep lines aligned when they could be inside a template literal
+<div>
+<script>
+const a = `x`;
+if (a) {
+  c(`{{ z }}`);
+}
+</script>
+</div>

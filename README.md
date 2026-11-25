@@ -42,7 +42,6 @@ Prettier for Twig supports the following options.
 | `embeddedSingleQuote`       | `true`  | Use single quotes instead of double quotes in embedded languages (JavaScript, CSS, TypeScript inside `<script>`, `<style>` or Twig equivalent) (since v0.4.0). |
 | `htmlWhitespaceSensitivity` | `css`   | Same as in Prettier ([see prettier docs](https://prettier.io/docs/en/options.html#html-whitespace-sensitivity))                                                |
 | `singleLineLinkTags`        | `false` | If set to `true`, will print `<link>` tags on a single line to remove clutter                                                                                  |
-| `indentSchema`              | `false` | If set to `true`, will indent the contents of the `{% schema %}` tag                                                                                           |
 
 ## Ignoring code
 

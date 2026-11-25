@@ -10,21 +10,21 @@
  * This stage traverses the flat tree we get from the previous stage and
  * establishes the parent/child relationship between the nodes.
  *
- * Recall the Liquid example we had in the first stage:
+ * Recall the Twig example we had in the first stage:
  *   {% if cond %}hi <em>there!</em>{% endif %}
  *
  * Whereas the previous stage gives us this CST:
- *   - LiquidTagOpen/if
- *     condition: LiquidVariableExpression/cond
+ *   - TwigTagOpen/if
+ *     condition: TwigVariableExpression/cond
  *   - TextNode/"hi "
  *   - HtmlTagOpen/em
  *   - TextNode/"there!"
  *   - HtmlTagClose/em
- *   - LiquidTagClose/if
+ *   - TwigTagClose/if
  *
  * We now traverse all the nodes and turn that into a proper AST:
- *   - LiquidTag/if
- *     condition: LiquidVariableExpression
+ *   - TwigTag/if
+ *     condition: TwigVariableExpression
  *     children:
  *       - TextNode/"hi "
  *       - HtmlElement/em
@@ -38,97 +38,75 @@ import {
   ConcreteHtmlTagClose,
   ConcreteHtmlTagOpen,
   ConcreteHtmlVoidElement,
-  ConcreteLiquidDrop,
-  ConcreteLiquidNode,
-  ConcreteLiquidTagClose,
+  ConcreteTwigDrop,
+  ConcreteTwigNode,
+  ConcreteTwigTagClose,
   ConcreteNodeTypes,
   ConcreteTextNode,
-  LiquidCST,
-  LiquidHtmlCST,
-  toLiquidHtmlCST,
+  TwigCST,
+  TwigHtmlCST,
+  toTwigHtmlCST,
   ConcreteHtmlSelfClosingElement,
   ConcreteAttrSingleQuoted,
   ConcreteAttrDoubleQuoted,
   ConcreteAttrUnquoted,
-  ConcreteLiquidVariable,
-  ConcreteLiquidLiteral,
-  ConcreteLiquidFilter,
-  ConcreteLiquidExpression,
-  ConcreteLiquidNamedArgument,
-  ConcreteLiquidTagNamed,
-  ConcreteLiquidTag,
-  ConcreteLiquidTagAssignMarkup,
-  ConcreteLiquidTagRenderMarkup,
-  ConcreteRenderVariableExpression,
-  ConcreteLiquidTagOpenNamed,
-  ConcreteLiquidTagOpen,
-  ConcreteLiquidArgument,
-  ConcreteLiquidCondition,
-  ConcreteLiquidComparison,
-  ConcreteLiquidTagForMarkup,
-  ConcreteLiquidTagCycleMarkup,
+  ConcreteTwigVariable,
+  ConcreteTwigLiteral,
+  ConcreteTwigFilter,
+  ConcreteTwigExpression,
+  ConcreteTwigNamedArgument,
+  ConcreteTwigTagNamed,
+  ConcreteTwigTag,
+  ConcreteTwigTagIncludeMarkup,
+  ConcreteIncludeVariableExpression,
+  ConcreteTwigTagOpenNamed,
+  ConcreteTwigTagOpen,
+  ConcreteTwigArgument,
+  ConcreteTwigCondition,
+  ConcreteTwigComparison,
+  ConcreteTwigTagForMarkup,
   ConcreteHtmlRawTag,
-  ConcreteLiquidRawTag,
-  LiquidHtmlConcreteNode,
+  ConcreteTwigRawTag,
+  TwigHtmlConcreteNode,
 } from '~/parser/stage-1-cst';
 import {
   Comparators,
-  isLiquidHtmlNode,
+  isTwigHtmlNode,
   NamedTags,
   NodeTypes,
   nonTraversableProperties,
   Position,
 } from '~/types';
 import { assertNever, deepGet, dropLast } from '~/utils';
-import { LiquidHTMLASTParsingError } from '~/parser/errors';
-import { TAGS_WITHOUT_MARKUP } from '~/parser/grammar';
-import { toLiquidCST } from '~/parser/stage-1-cst';
+import { TwigHTMLASTParsingError } from '~/parser/errors';
+import { toTwigCST } from '~/parser/stage-1-cst';
 
 interface HasPosition {
   locStart: number;
   locEnd: number;
 }
 
-export type LiquidHtmlNode =
+export type TwigHtmlNode =
   | DocumentNode
   | YAMLFrontmatter
-  | LiquidNode
+  | TwigNode
   | HtmlDoctype
   | HtmlNode
   | AttributeNode
-  | LiquidVariable
-  | LiquidExpression
-  | LiquidFilter
-  | LiquidNamedArgument
-  | AssignMarkup
-  | CycleMarkup
+  | TwigVariable
+  | TwigExpression
+  | TwigFilter
+  | TwigNamedArgument
   | ForMarkup
-  | RenderMarkup
+  | IncludeMarkup
   | RawMarkup
-  | RenderVariableExpression
-  | LiquidLogicalExpression
-  | LiquidComparison
-  | TextNode;
-
-export type LiquidAST =
-  | DocumentNode
-  | LiquidNode
-  | LiquidVariable
-  | LiquidExpression
-  | LiquidFilter
-  | LiquidNamedArgument
-  | AssignMarkup
-  | CycleMarkup
-  | ForMarkup
-  | RenderMarkup
-  | RawMarkup
-  | RenderVariableExpression
-  | LiquidLogicalExpression
-  | LiquidComparison
+  | IncludeVariableExpression
+  | TwigLogicalExpression
+  | TwigComparison
   | TextNode;
 
 export interface DocumentNode extends ASTNode<NodeTypes.Document> {
-  children: LiquidHtmlNode[];
+  children: TwigHtmlNode[];
   name: '#document';
 }
 
@@ -136,33 +114,32 @@ export interface YAMLFrontmatter extends ASTNode<NodeTypes.YAMLFrontmatter> {
   body: string;
 }
 
-export type LiquidNode = LiquidRawTag | LiquidTag | LiquidDrop | LiquidBranch;
-export type LiquidStatement = LiquidRawTag | LiquidTag | LiquidBranch;
+export type TwigNode = TwigRawTag | TwigTag | TwigDrop | TwigBranch;
 
 export interface HasChildren {
-  children?: LiquidHtmlNode[];
+  children?: TwigHtmlNode[];
 }
 export interface HasAttributes {
   attributes: AttributeNode[];
 }
 export interface HasValue {
-  value: (TextNode | LiquidNode)[];
+  value: (TextNode | TwigNode)[];
 }
 export interface HasName {
-  name: string | LiquidDrop;
+  name: string | TwigDrop;
 }
 export interface HasCompoundName {
-  name: (TextNode | LiquidNode)[];
+  name: (TextNode | TwigNode)[];
 }
 
 export type ParentNode = Extract<
-  LiquidHtmlNode,
+  TwigHtmlNode,
   HasChildren | HasAttributes | HasValue | HasName | HasCompoundName
 >;
 
-export interface LiquidRawTag extends ASTNode<NodeTypes.LiquidRawTag> {
+export interface TwigRawTag extends ASTNode<NodeTypes.TwigRawTag> {
   /**
-   * e.g. raw, style, javascript
+   * e.g. verbatim, css, js
    */
   name: string;
   markup: string;
@@ -179,31 +156,12 @@ export interface LiquidRawTag extends ASTNode<NodeTypes.LiquidRawTag> {
   blockEndPosition: Position;
 }
 
-export type LiquidTag = LiquidTagNamed | LiquidTagBaseCase;
-export type LiquidTagNamed =
-  | LiquidTagAssign
-  | LiquidTagCase
-  | LiquidTagCapture
-  | LiquidTagCycle
-  | LiquidTagDecrement
-  | LiquidTagEcho
-  | LiquidTagFor
-  | LiquidTagForm
-  | LiquidTagIf
-  | LiquidTagInclude
-  | LiquidTagIncrement
-  | LiquidTagLayout
-  | LiquidTagLiquid
-  | LiquidTagRender
-  | LiquidTagSection
-  | LiquidTagSections
-  | LiquidTagTablerow
-  | LiquidTagUnless;
+export type TwigTag = TwigTagNamed | TwigTagBaseCase;
+export type TwigTagNamed = TwigTagFor | TwigTagIf | TwigTagInclude;
 
-export interface LiquidTagNode<Name, Markup>
-  extends ASTNode<NodeTypes.LiquidTag> {
+export interface TwigTagNode<Name, Markup> extends ASTNode<NodeTypes.TwigTag> {
   /**
-   * e.g. if, ifchanged, for, etc.
+   * e.g. if, for, block, etc.
    */
   name: Name;
 
@@ -211,7 +169,7 @@ export interface LiquidTagNode<Name, Markup>
    * The body of the tag. May contain arguments. Excludes the name of the tag. Left trimmed if string.
    */
   markup: Markup;
-  children?: LiquidHtmlNode[];
+  children?: TwigHtmlNode[];
   whitespaceStart: '-' | '~' | '';
   whitespaceEnd: '-' | '~' | '';
   delimiterWhitespaceStart?: '-' | '~' | '';
@@ -220,120 +178,64 @@ export interface LiquidTagNode<Name, Markup>
   blockEndPosition?: Position;
 }
 
-export interface LiquidTagBaseCase extends LiquidTagNode<string, string> {}
-export interface LiquidTagEcho
-  extends LiquidTagNode<NamedTags.echo, LiquidVariable> {}
-
-export interface LiquidTagAssign
-  extends LiquidTagNode<NamedTags.assign, AssignMarkup> {}
-export interface AssignMarkup extends ASTNode<NodeTypes.AssignMarkup> {
-  name: string;
-  value: LiquidVariable;
-}
-
-export interface LiquidTagIncrement
-  extends LiquidTagNode<NamedTags.increment, LiquidVariableLookup> {}
-export interface LiquidTagDecrement
-  extends LiquidTagNode<NamedTags.decrement, LiquidVariableLookup> {}
-
-export interface LiquidTagCapture
-  extends LiquidTagNode<NamedTags.capture, LiquidVariableLookup> {}
-
-export interface LiquidTagCycle
-  extends LiquidTagNode<NamedTags.cycle, CycleMarkup> {}
-export interface CycleMarkup extends ASTNode<NodeTypes.CycleMarkup> {
-  groupName: LiquidExpression | null;
-  args: LiquidExpression[];
-}
-
-export interface LiquidTagCase
-  extends LiquidTagNode<NamedTags.case, LiquidExpression> {}
-export interface LiquidBranchWhen
-  extends LiquidBranchNode<NamedTags.when, LiquidExpression[]> {}
-
-export interface LiquidTagForm
-  extends LiquidTagNode<NamedTags.form, LiquidArgument[]> {}
-
-export interface LiquidTagFor extends LiquidTagNode<NamedTags.for, ForMarkup> {}
+export interface TwigTagBaseCase extends TwigTagNode<string, string> {}
+export interface TwigTagFor extends TwigTagNode<NamedTags.for, ForMarkup> {}
 export interface ForMarkup extends ASTNode<NodeTypes.ForMarkup> {
   variableName: string;
-  collection: LiquidExpression;
+  collection: TwigExpression;
   reversed: boolean;
-  args: LiquidNamedArgument[];
+  args: TwigNamedArgument[];
 }
 
-export interface LiquidTagTablerow
-  extends LiquidTagNode<NamedTags.tablerow, ForMarkup> {}
+export interface TwigTagIf extends TwigTagConditional<NamedTags.if> {}
+export interface TwigBranchElseif
+  extends TwigBranchNode<NamedTags.elseif, TwigConditionalExpression> {}
+export interface TwigTagConditional<Name>
+  extends TwigTagNode<Name, TwigConditionalExpression> {}
 
-export interface LiquidTagIf extends LiquidTagConditional<NamedTags.if> {}
-export interface LiquidTagUnless
-  extends LiquidTagConditional<NamedTags.unless> {}
-export interface LiquidBranchElseif
-  extends LiquidBranchNode<NamedTags.elseif, LiquidConditionalExpression> {}
-export interface LiquidBranchElsif
-  extends LiquidBranchNode<NamedTags.elsif, LiquidConditionalExpression> {}
-export interface LiquidTagConditional<Name>
-  extends LiquidTagNode<Name, LiquidConditionalExpression> {}
+export type TwigConditionalExpression =
+  | TwigLogicalExpression
+  | TwigComparison
+  | TwigExpression;
 
-export type LiquidConditionalExpression =
-  | LiquidLogicalExpression
-  | LiquidComparison
-  | LiquidExpression;
-
-export interface LiquidLogicalExpression
+export interface TwigLogicalExpression
   extends ASTNode<NodeTypes.LogicalExpression> {
   relation: 'and' | 'or';
-  left: LiquidConditionalExpression;
-  right: LiquidConditionalExpression;
+  left: TwigConditionalExpression;
+  right: TwigConditionalExpression;
 }
 
-export interface LiquidComparison extends ASTNode<NodeTypes.Comparison> {
+export interface TwigComparison extends ASTNode<NodeTypes.Comparison> {
   comparator: Comparators;
-  left: LiquidConditionalExpression;
-  right: LiquidConditionalExpression;
+  left: TwigConditionalExpression;
+  right: TwigConditionalExpression;
 }
 
-export interface LiquidTagRender
-  extends LiquidTagNode<NamedTags.render, RenderMarkup> {}
-export interface LiquidTagInclude
-  extends LiquidTagNode<NamedTags.include, RenderMarkup> {}
+export interface TwigTagInclude
+  extends TwigTagNode<NamedTags.include, IncludeMarkup> {}
 
-export interface LiquidTagSection
-  extends LiquidTagNode<NamedTags.section, LiquidString> {}
-export interface LiquidTagSections
-  extends LiquidTagNode<NamedTags.sections, LiquidString> {}
-export interface LiquidTagLayout
-  extends LiquidTagNode<NamedTags.layout, LiquidExpression> {}
-
-export interface LiquidTagLiquid
-  extends LiquidTagNode<NamedTags.liquid, LiquidStatement[]> {}
-
-export interface RenderMarkup extends ASTNode<NodeTypes.RenderMarkup> {
-  snippet: LiquidString | LiquidVariableLookup;
+export interface IncludeMarkup extends ASTNode<NodeTypes.IncludeMarkup> {
+  template: TwigString | TwigVariableLookup;
   alias: string | null;
-  variable: RenderVariableExpression | null;
-  args: LiquidNamedArgument[];
+  variable: IncludeVariableExpression | null;
+  args: TwigNamedArgument[];
 }
 
-export interface RenderVariableExpression
-  extends ASTNode<NodeTypes.RenderVariableExpression> {
+export interface IncludeVariableExpression
+  extends ASTNode<NodeTypes.IncludeVariableExpression> {
   kind: 'for' | 'with';
-  name: LiquidExpression;
+  name: TwigExpression;
 }
 
-export type LiquidBranch =
-  | LiquidBranchUnnamed
-  | LiquidBranchBaseCase
-  | LiquidBranchNamed;
-export type LiquidBranchNamed =
-  | LiquidBranchElseif
-  | LiquidBranchElsif
-  | LiquidBranchWhen;
+export type TwigBranch =
+  | TwigBranchUnnamed
+  | TwigBranchBaseCase
+  | TwigBranchNamed;
+export type TwigBranchNamed = TwigBranchElseif;
 
-interface LiquidBranchNode<Name, Markup>
-  extends ASTNode<NodeTypes.LiquidBranch> {
+interface TwigBranchNode<Name, Markup> extends ASTNode<NodeTypes.TwigBranch> {
   /**
-   * e.g. else, elsif, when | null when in the main branch
+   * e.g. else, elseif | null when in the main branch
    */
   name: Name;
 
@@ -341,72 +243,71 @@ interface LiquidBranchNode<Name, Markup>
    * The body of the branch tag. May contain arguments. Excludes the name of the tag. Left trimmed.
    */
   markup: Markup;
-  children: LiquidHtmlNode[];
+  children: TwigHtmlNode[];
   whitespaceStart: '-' | '~' | '';
   whitespaceEnd: '-' | '~' | '';
   blockStartPosition: Position;
 }
 
-export interface LiquidBranchUnnamed extends LiquidBranchNode<null, string> {}
-export interface LiquidBranchBaseCase
-  extends LiquidBranchNode<string, string> {}
+export interface TwigBranchUnnamed extends TwigBranchNode<null, string> {}
+export interface TwigBranchBaseCase extends TwigBranchNode<string, string> {}
 
-export interface LiquidDrop extends ASTNode<NodeTypes.LiquidDrop> {
+export interface TwigDrop extends ASTNode<NodeTypes.TwigDrop> {
   /**
    * The body of the drop. May contain filters. Not trimmed.
    */
-  markup: string | LiquidVariable;
+  markup: string | TwigVariable;
   whitespaceStart: '-' | '~' | '';
   whitespaceEnd: '-' | '~' | '';
 }
 
-interface LiquidVariable extends ASTNode<NodeTypes.LiquidVariable> {
-  expression: LiquidExpression;
-  filters: LiquidFilter[];
+interface TwigVariable extends ASTNode<NodeTypes.TwigVariable> {
+  expression: TwigExpression;
+  filters: TwigFilter[];
   rawSource: string;
 }
 
-export type LiquidExpression =
-  | LiquidString
-  | LiquidNumber
-  | LiquidLiteral
-  | LiquidRange
-  | LiquidVariableLookup;
+export type TwigExpression =
+  | TwigString
+  | TwigNumber
+  | TwigLiteral
+  | TwigRange
+  | TwigVariableLookup;
 
-interface LiquidFilter extends ASTNode<NodeTypes.LiquidFilter> {
+interface TwigFilter extends ASTNode<NodeTypes.TwigFilter> {
   name: string;
-  args: LiquidArgument[];
+  args: TwigArgument[];
 }
 
-type LiquidArgument = LiquidExpression | LiquidNamedArgument;
+type TwigArgument = TwigExpression | TwigNamedArgument;
 
-interface LiquidNamedArgument extends ASTNode<NodeTypes.NamedArgument> {
+interface TwigNamedArgument extends ASTNode<NodeTypes.NamedArgument> {
   name: string;
-  value: LiquidExpression;
+  value: TwigExpression;
 }
 
-interface LiquidString extends ASTNode<NodeTypes.String> {
+interface TwigString extends ASTNode<NodeTypes.String> {
   single: boolean;
   value: string;
 }
 
-interface LiquidNumber extends ASTNode<NodeTypes.Number> {
+interface TwigNumber extends ASTNode<NodeTypes.Number> {
   value: string;
 }
 
-interface LiquidRange extends ASTNode<NodeTypes.Range> {
-  start: LiquidExpression;
-  end: LiquidExpression;
+interface TwigRange extends ASTNode<NodeTypes.Range> {
+  start: TwigExpression;
+  end: TwigExpression;
 }
 
-interface LiquidLiteral extends ASTNode<NodeTypes.LiquidLiteral> {
-  keyword: ConcreteLiquidLiteral['keyword'];
-  value: ConcreteLiquidLiteral['value'];
+interface TwigLiteral extends ASTNode<NodeTypes.TwigLiteral> {
+  keyword: ConcreteTwigLiteral['keyword'];
+  value: ConcreteTwigLiteral['value'];
 }
 
-interface LiquidVariableLookup extends ASTNode<NodeTypes.VariableLookup> {
+interface TwigVariableLookup extends ASTNode<NodeTypes.VariableLookup> {
   name: string | null;
-  lookups: LiquidExpression[];
+  lookups: TwigExpression[];
 }
 
 export type HtmlNode =
@@ -423,19 +324,19 @@ export interface HtmlElement extends HtmlNodeBase<NodeTypes.HtmlElement> {
    * The name of the tag can be compound
    * @example <{{ header_type }}--header />
    */
-  name: (TextNode | LiquidDrop)[];
-  children: LiquidHtmlNode[];
+  name: (TextNode | TwigDrop)[];
+  children: TwigHtmlNode[];
   blockEndPosition: Position;
 }
 
 export interface HtmlDanglingMarkerOpen
   extends HtmlNodeBase<NodeTypes.HtmlDanglingMarkerOpen> {
-  name: (TextNode | LiquidDrop)[];
+  name: (TextNode | TwigDrop)[];
 }
 
 export interface HtmlDanglingMarkerClose
   extends ASTNode<NodeTypes.HtmlDanglingMarkerClose> {
-  name: (TextNode | LiquidDrop)[];
+  name: (TextNode | TwigDrop)[];
   blockStartPosition: Position;
 }
 
@@ -445,7 +346,7 @@ export interface HtmlSelfClosingElement
    * The name of the tag can be compound
    * @example <{{ header_type }}--header />
    */
-  name: (TextNode | LiquidDrop)[];
+  name: (TextNode | TwigDrop)[];
 }
 
 export interface HtmlVoidElement
@@ -491,7 +392,7 @@ export interface HtmlNodeBase<T> extends ASTNode<T> {
 }
 
 export type AttributeNode =
-  | LiquidNode
+  | TwigNode
   | AttrSingleQuoted
   | AttrDoubleQuoted
   | AttrUnquoted
@@ -504,13 +405,13 @@ export interface AttrDoubleQuoted
 export interface AttrUnquoted
   extends AttributeNodeBase<NodeTypes.AttrUnquoted> {}
 export interface AttrEmpty extends ASTNode<NodeTypes.AttrEmpty> {
-  name: (TextNode | LiquidDrop)[];
+  name: (TextNode | TwigDrop)[];
 }
 
-export type ValueNode = TextNode | LiquidNode;
+export type ValueNode = TextNode | TwigNode;
 
 export interface AttributeNodeBase<T> extends ASTNode<T> {
-  name: (TextNode | LiquidDrop)[];
+  name: (TextNode | TwigDrop)[];
   value: ValueNode[];
   attributePosition: Position;
 }
@@ -532,7 +433,7 @@ interface ASTBuildOptions {
   allowUnclosedDocumentNode: boolean;
 
   /**
-   * 'strict' will disable the Liquid parsing base cases. Which means that we will
+   * 'strict' will disable the Twig parsing base cases. Which means that we will
    * throw an error if we can't parse the node `markup` properly.
    *
    * 'tolerant' is the default case so that prettier can pretty print nodes
@@ -541,40 +442,36 @@ interface ASTBuildOptions {
   mode: 'strict' | 'tolerant' | 'completion';
 }
 
-export function isBranchedTag(node: LiquidHtmlNode) {
+export function isBranchedTag(node: TwigHtmlNode) {
+  return node.type === NodeTypes.TwigTag && ['if', 'for'].includes(node.name);
+}
+
+// Not exported because you can use node.type === NodeTypes.TwigBranch.
+function isTwigBranchDisguisedAsTag(
+  node: TwigHtmlNode,
+): node is TwigTagBaseCase {
   return (
-    node.type === NodeTypes.LiquidTag &&
-    ['if', 'for', 'unless', 'case'].includes(node.name)
+    node.type === NodeTypes.TwigTag && ['else', 'elseif'].includes(node.name)
   );
 }
 
-// Not exported because you can use node.type === NodeTypes.LiquidBranch.
-function isLiquidBranchDisguisedAsTag(
-  node: LiquidHtmlNode,
-): node is LiquidTagBaseCase {
+function isConcreteTwigBranchDisguisedAsTag(
+  node: TwigHtmlConcreteNode,
+): node is ConcreteTwigNode & { name: 'else' | 'elseif' } {
   return (
-    node.type === NodeTypes.LiquidTag &&
-    ['else', 'elseif', 'elsif', 'when'].includes(node.name)
+    node.type === ConcreteNodeTypes.TwigTag &&
+    ['else', 'elseif'].includes(node.name)
   );
 }
 
-function isConcreteLiquidBranchDisguisedAsTag(
-  node: LiquidHtmlConcreteNode,
-): node is ConcreteLiquidNode & { name: 'else' | 'elseif' | 'eslif' | 'when' } {
-  return (
-    node.type === ConcreteNodeTypes.LiquidTag &&
-    ['else', 'elseif', 'eslif', 'when'].includes(node.name)
-  );
-}
-
-export function toLiquidAST(
+export function toTwigAST(
   source: string,
   options: ASTBuildOptions = {
     allowUnclosedDocumentNode: true,
     mode: 'tolerant',
   },
 ) {
-  const cst = toLiquidCST(source, { mode: options.mode });
+  const cst = toTwigCST(source, { mode: options.mode });
   const root: DocumentNode = {
     type: NodeTypes.Document,
     source: source,
@@ -588,14 +485,14 @@ export function toLiquidAST(
   return root;
 }
 
-export function toLiquidHtmlAST(
+export function toTwigHtmlAST(
   source: string,
   options: ASTBuildOptions = {
     allowUnclosedDocumentNode: false,
     mode: 'tolerant',
   },
 ): DocumentNode {
-  const cst = toLiquidHtmlCST(source, { mode: options.mode });
+  const cst = toTwigHtmlCST(source, { mode: options.mode });
   const root: DocumentNode = {
     type: NodeTypes.Document,
     source: source,
@@ -610,7 +507,7 @@ export function toLiquidHtmlAST(
 }
 
 class ASTBuilder {
-  ast: LiquidHtmlNode[];
+  ast: TwigHtmlNode[];
   cursor: (string | number)[];
   source: string;
 
@@ -621,7 +518,7 @@ class ASTBuilder {
   }
 
   get current() {
-    return deepGet<LiquidHtmlNode[]>(this.cursor, this.ast) as LiquidHtmlNode[];
+    return deepGet<TwigHtmlNode[]>(this.cursor, this.ast) as TwigHtmlNode[];
   }
 
   get currentPosition(): number {
@@ -630,38 +527,35 @@ class ASTBuilder {
 
   get parent(): ParentNode | undefined {
     if (this.cursor.length == 0) return undefined;
-    return deepGet<LiquidTag | HtmlElement>(dropLast(1, this.cursor), this.ast);
+    return deepGet<TwigTag | HtmlElement>(dropLast(1, this.cursor), this.ast);
   }
 
   get grandparent(): ParentNode | undefined {
     if (this.cursor.length < 4) return undefined;
-    return deepGet<LiquidTag | HtmlElement>(dropLast(3, this.cursor), this.ast);
+    return deepGet<TwigTag | HtmlElement>(dropLast(3, this.cursor), this.ast);
   }
 
-  open(node: LiquidHtmlNode) {
+  open(node: TwigHtmlNode) {
     this.current.push(node);
     this.cursor.push(this.currentPosition);
     this.cursor.push('children');
 
     if (isBranchedTag(node)) {
-      this.open(toUnnamedLiquidBranch(node));
+      this.open(toUnnamedTwigBranch(node));
     }
   }
 
-  push(node: LiquidHtmlNode) {
-    if (
-      node.type === NodeTypes.LiquidTag &&
-      isLiquidBranchDisguisedAsTag(node)
-    ) {
+  push(node: TwigHtmlNode) {
+    if (node.type === NodeTypes.TwigTag && isTwigBranchDisguisedAsTag(node)) {
       this.cursor.pop();
       this.cursor.pop();
-      this.open(toNamedLiquidBranchBaseCase(node));
-    } else if (node.type === NodeTypes.LiquidBranch) {
+      this.open(toNamedTwigBranchBaseCase(node));
+    } else if (node.type === NodeTypes.TwigBranch) {
       this.cursor.pop();
       this.cursor.pop();
       this.open(node);
     } else {
-      if (this.parent?.type === NodeTypes.LiquidBranch) {
+      if (this.parent?.type === NodeTypes.TwigBranch) {
         this.parent.position.end = node.position.end;
       }
       this.current.push(node);
@@ -669,17 +563,17 @@ class ASTBuilder {
   }
 
   close(
-    node: ConcreteLiquidTagClose | ConcreteHtmlTagClose,
-    nodeType: NodeTypes.LiquidTag | NodeTypes.HtmlElement,
+    node: ConcreteTwigTagClose | ConcreteHtmlTagClose,
+    nodeType: NodeTypes.TwigTag | NodeTypes.HtmlElement,
   ) {
-    if (isLiquidBranch(this.parent)) {
+    if (isTwigBranch(this.parent)) {
       this.parent.position.end = node.locStart;
       this.cursor.pop();
       this.cursor.pop();
     }
 
     if (!this.parent) {
-      throw new LiquidHTMLASTParsingError(
+      throw new TwigHTMLASTParsingError(
         `Attempting to close ${nodeType} '${getName(
           node,
         )}' before it was opened`,
@@ -693,7 +587,7 @@ class ASTBuilder {
       getName(this.parent) !== getName(node) ||
       this.parent.type !== nodeType
     ) {
-      throw new LiquidHTMLASTParsingError(
+      throw new TwigHTMLASTParsingError(
         `Attempting to close ${nodeType} '${getName(node)}' before ${
           this.parent.type
         } '${getName(this.parent)}' was closed`,
@@ -707,8 +601,8 @@ class ASTBuilder {
     this.parent.position.end = node.locEnd;
     this.parent.blockEndPosition = position(node);
     if (
-      this.parent.type == NodeTypes.LiquidTag &&
-      node.type == ConcreteNodeTypes.LiquidTagClose
+      this.parent.type == NodeTypes.TwigTag &&
+      node.type == ConcreteNodeTypes.TwigTagClose
     ) {
       this.parent.delimiterWhitespaceStart = node.whitespaceStart ?? '';
       this.parent.delimiterWhitespaceEnd = node.whitespaceEnd ?? '';
@@ -718,15 +612,15 @@ class ASTBuilder {
   }
 }
 
-function isLiquidBranch(
-  node: LiquidHtmlNode | undefined,
-): node is LiquidBranchNode<any, any> {
-  return !!node && node.type === NodeTypes.LiquidBranch;
+function isTwigBranch(
+  node: TwigHtmlNode | undefined,
+): node is TwigBranchNode<any, any> {
+  return !!node && node.type === NodeTypes.TwigBranch;
 }
 
 function getName(
-  node: ConcreteLiquidTagClose | ConcreteHtmlTagClose | ParentNode | undefined,
-): string | LiquidDrop | null {
+  node: ConcreteTwigTagClose | ConcreteHtmlTagClose | ParentNode | undefined,
+): string | TwigDrop | null {
   if (!node) return null;
   switch (node.type) {
     case NodeTypes.HtmlElement:
@@ -768,15 +662,15 @@ function getName(
 }
 
 export function cstToAst(
-  cst: LiquidHtmlCST | LiquidCST | ConcreteAttributeNode[],
+  cst: TwigHtmlCST | TwigCST | ConcreteAttributeNode[],
   options: ASTBuildOptions,
-): LiquidHtmlNode[] {
+): TwigHtmlNode[] {
   if (cst.length === 0) return [];
 
   const builder = buildAst(cst, options);
 
   if (!options.allowUnclosedDocumentNode && builder.cursor.length !== 0) {
-    throw new LiquidHTMLASTParsingError(
+    throw new TwigHTMLASTParsingError(
       `Attempting to end parsing before ${builder.parent?.type} '${getName(
         builder.parent,
       )}' was closed`,
@@ -790,7 +684,7 @@ export function cstToAst(
 }
 
 function buildAst(
-  cst: LiquidHtmlCST | LiquidCST | ConcreteAttributeNode[],
+  cst: TwigHtmlCST | TwigCST | ConcreteAttributeNode[],
   options: ASTBuildOptions,
 ) {
   const builder = new ASTBuilder(cst[0].source);
@@ -804,30 +698,30 @@ function buildAst(
         break;
       }
 
-      case ConcreteNodeTypes.LiquidDrop: {
-        builder.push(toLiquidDrop(node));
+      case ConcreteNodeTypes.TwigDrop: {
+        builder.push(toTwigDrop(node));
         break;
       }
 
-      case ConcreteNodeTypes.LiquidTagOpen: {
-        builder.open(toLiquidTag(node, { isBlockTag: true, ...options }));
+      case ConcreteNodeTypes.TwigTagOpen: {
+        builder.open(toTwigTag(node, { isBlockTag: true, ...options }));
         break;
       }
 
-      case ConcreteNodeTypes.LiquidTagClose: {
-        builder.close(node, NodeTypes.LiquidTag);
+      case ConcreteNodeTypes.TwigTagClose: {
+        builder.close(node, NodeTypes.TwigTag);
         break;
       }
 
-      case ConcreteNodeTypes.LiquidTag: {
-        builder.push(toLiquidTag(node, { isBlockTag: false, ...options }));
+      case ConcreteNodeTypes.TwigTag: {
+        builder.push(toTwigTag(node, { isBlockTag: false, ...options }));
         break;
       }
 
-      case ConcreteNodeTypes.LiquidRawTag: {
+      case ConcreteNodeTypes.TwigRawTag: {
         builder.push({
-          type: NodeTypes.LiquidRawTag,
-          markup: markup(node.name, node.markup),
+          type: NodeTypes.TwigRawTag,
+          markup: node.markup,
           name: node.name,
           body: toRawMarkup(node),
           whitespaceStart: node.whitespaceStart ?? '',
@@ -849,7 +743,7 @@ function buildAst(
       }
 
       case ConcreteNodeTypes.HtmlTagOpen: {
-        if (isAcceptableDanglingMarkerOpen(builder, cst as LiquidHtmlCST, i)) {
+        if (isAcceptableDanglingMarkerOpen(builder, cst as TwigHtmlCST, i)) {
           builder.push(toHtmlDanglingMarkerOpen(node, options));
         } else {
           builder.open(toHtmlElement(node, options));
@@ -858,7 +752,7 @@ function buildAst(
       }
 
       case ConcreteNodeTypes.HtmlTagClose: {
-        if (isAcceptableDanglingMarkerClose(builder, cst as LiquidHtmlCST, i)) {
+        if (isAcceptableDanglingMarkerClose(builder, cst as TwigHtmlCST, i)) {
           builder.push(toHtmlDanglingMarkerClose(node, options));
         } else {
           builder.close(node, NodeTypes.HtmlElement);
@@ -919,7 +813,7 @@ function buildAst(
       case ConcreteNodeTypes.AttrEmpty: {
         builder.push({
           type: NodeTypes.AttrEmpty,
-          name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+          name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
           position: position(node),
           source: node.source,
         });
@@ -935,7 +829,7 @@ function buildAst(
               | NodeTypes.AttrSingleQuoted
               | NodeTypes.AttrDoubleQuoted
               | NodeTypes.AttrUnquoted,
-            name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+            name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
             position: position(node),
             source: node.source,
 
@@ -969,7 +863,7 @@ function buildAst(
   return builder;
 }
 
-function nameLength(names: (ConcreteLiquidDrop | ConcreteTextNode)[]) {
+function nameLength(names: (ConcreteTwigDrop | ConcreteTextNode)[]) {
   const start = names.at(0)!;
   const end = names.at(-1)!;
   return end.locEnd - start.locStart;
@@ -980,7 +874,7 @@ function toAttributePosition(
     | ConcreteAttrSingleQuoted
     | ConcreteAttrDoubleQuoted
     | ConcreteAttrUnquoted,
-  value: (LiquidNode | TextNode)[],
+  value: (TwigNode | TextNode)[],
 ): Position {
   if (value.length === 0) {
     // This is bugged when there's whitespace on either side. But I don't
@@ -1006,10 +900,10 @@ function toAttributePosition(
 }
 
 function toAttributeValue(
-  value: (ConcreteLiquidNode | ConcreteTextNode)[],
+  value: (ConcreteTwigNode | ConcreteTextNode)[],
   options: ASTBuildOptions,
-): (LiquidNode | TextNode)[] {
-  return cstToAst(value, options) as (LiquidNode | TextNode)[];
+): (TwigNode | TextNode)[] {
+  return cstToAst(value, options) as (TwigNode | TextNode)[];
 }
 
 function toAttributes(
@@ -1019,11 +913,11 @@ function toAttributes(
   return cstToAst(attrList, options) as AttributeNode[];
 }
 
-function liquidTagBaseAttributes(
-  node: ConcreteLiquidTag | ConcreteLiquidTagOpen,
-): Omit<LiquidTag, 'name' | 'markup'> {
+function twigTagBaseAttributes(
+  node: ConcreteTwigTag | ConcreteTwigTagOpen,
+): Omit<TwigTag, 'name' | 'markup'> {
   return {
-    type: NodeTypes.LiquidTag,
+    type: NodeTypes.TwigTag,
     position: position(node),
     whitespaceStart: node.whitespaceStart ?? '',
     whitespaceEnd: node.whitespaceEnd ?? '',
@@ -1032,11 +926,11 @@ function liquidTagBaseAttributes(
   };
 }
 
-function liquidBranchBaseAttributes(
-  node: ConcreteLiquidTag,
-): Omit<LiquidBranch, 'name' | 'markup'> {
+function twigBranchBaseAttributes(
+  node: ConcreteTwigTag,
+): Omit<TwigBranch, 'name' | 'markup'> {
   return {
-    type: NodeTypes.LiquidBranch,
+    type: NodeTypes.TwigBranch,
     children: [],
     position: position(node),
     whitespaceStart: node.whitespaceStart ?? '',
@@ -1046,159 +940,62 @@ function liquidBranchBaseAttributes(
   };
 }
 
-function toLiquidTag(
-  node: ConcreteLiquidTag | ConcreteLiquidTagOpen,
+function toTwigTag(
+  node: ConcreteTwigTag | ConcreteTwigTagOpen,
   options: ASTBuildOptions & { isBlockTag: boolean },
-): LiquidTag | LiquidBranch {
+): TwigTag | TwigBranch {
   if (typeof node.markup !== 'string') {
-    return toNamedLiquidTag(node as ConcreteLiquidTagNamed, options);
+    return toNamedTwigTag(node as ConcreteTwigTagNamed);
   } else if (options.isBlockTag) {
     return {
       name: node.name,
-      markup: markup(node.name, node.markup),
+      markup: node.markup,
       children: options.isBlockTag ? [] : undefined,
-      ...liquidTagBaseAttributes(node),
+      ...twigTagBaseAttributes(node),
     };
   }
   return {
     name: node.name,
-    markup: markup(node.name, node.markup),
-    ...liquidTagBaseAttributes(node),
+    markup: node.markup,
+    ...twigTagBaseAttributes(node),
   };
 }
 
-function toNamedLiquidTag(
-  node: ConcreteLiquidTagNamed | ConcreteLiquidTagOpenNamed,
-  options: ASTBuildOptions,
-): LiquidTagNamed | LiquidBranchNamed {
+function toNamedTwigTag(
+  node: ConcreteTwigTagNamed | ConcreteTwigTagOpenNamed,
+): TwigTagNamed | TwigBranchNamed {
   switch (node.name) {
-    case NamedTags.echo: {
+    case NamedTags.include: {
       return {
-        ...liquidTagBaseAttributes(node),
-        name: NamedTags.echo,
-        markup: toLiquidVariable(node.markup),
-      };
-    }
-
-    case NamedTags.assign: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: NamedTags.assign,
-        markup: toAssignMarkup(node.markup),
-      };
-    }
-
-    case NamedTags.cycle: {
-      return {
-        ...liquidTagBaseAttributes(node),
+        ...twigTagBaseAttributes(node),
         name: node.name,
-        markup: toCycleMarkup(node.markup),
+        markup: toIncludeMarkup(node.markup),
       };
     }
 
-    case NamedTags.increment:
-    case NamedTags.decrement: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toExpression(node.markup) as LiquidVariableLookup,
-      };
-    }
-
-    case NamedTags.capture: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toExpression(node.markup) as LiquidVariableLookup,
-        children: [],
-      };
-    }
-
-    case NamedTags.include:
-    case NamedTags.render: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toRenderMarkup(node.markup),
-      };
-    }
-
-    case NamedTags.layout:
-    case NamedTags.section: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toExpression(node.markup) as LiquidString,
-      };
-    }
-    case NamedTags.sections: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toExpression(node.markup) as LiquidString,
-      };
-    }
-
-    case NamedTags.form: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: node.markup.map(toLiquidArgument),
-        children: [],
-      };
-    }
-
-    case NamedTags.tablerow:
     case NamedTags.for: {
       return {
-        ...liquidTagBaseAttributes(node),
+        ...twigTagBaseAttributes(node),
         name: node.name,
         markup: toForMarkup(node.markup),
         children: [],
       };
     }
 
-    case NamedTags.if:
-    case NamedTags.unless: {
+    case NamedTags.if: {
       return {
-        ...liquidTagBaseAttributes(node),
+        ...twigTagBaseAttributes(node),
         name: node.name,
         markup: toConditionalExpression(node.markup),
         children: [],
       };
     }
 
-    case NamedTags.elseif:
-    case NamedTags.elsif: {
+    case NamedTags.elseif: {
       return {
-        ...liquidBranchBaseAttributes(node),
+        ...twigBranchBaseAttributes(node),
         name: node.name,
         markup: toConditionalExpression(node.markup),
-      };
-    }
-
-    case NamedTags.case: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: toExpression(node.markup),
-        children: [],
-      };
-    }
-
-    case NamedTags.when: {
-      return {
-        ...liquidBranchBaseAttributes(node),
-        name: node.name,
-        markup: node.markup.map(toExpression),
-      };
-    }
-
-    case NamedTags.liquid: {
-      return {
-        ...liquidTagBaseAttributes(node),
-        name: node.name,
-        markup: cstToAst(node.markup, options) as LiquidStatement[],
       };
     }
 
@@ -1208,12 +1005,10 @@ function toNamedLiquidTag(
   }
 }
 
-function toNamedLiquidBranchBaseCase(
-  node: LiquidTagBaseCase,
-): LiquidBranchBaseCase {
+function toNamedTwigBranchBaseCase(node: TwigTagBaseCase): TwigBranchBaseCase {
   return {
     name: node.name,
-    type: NodeTypes.LiquidBranch,
+    type: NodeTypes.TwigBranch,
     markup: node.markup,
     position: { ...node.position },
     children: [],
@@ -1224,11 +1019,9 @@ function toNamedLiquidBranchBaseCase(
   };
 }
 
-function toUnnamedLiquidBranch(
-  parentNode: LiquidHtmlNode,
-): LiquidBranchUnnamed {
+function toUnnamedTwigBranch(parentNode: TwigHtmlNode): TwigBranchUnnamed {
   return {
-    type: NodeTypes.LiquidBranch,
+    type: NodeTypes.TwigBranch,
     name: null,
     markup: '',
     position: {
@@ -1246,27 +1039,7 @@ function toUnnamedLiquidBranch(
   };
 }
 
-function toAssignMarkup(node: ConcreteLiquidTagAssignMarkup): AssignMarkup {
-  return {
-    type: NodeTypes.AssignMarkup,
-    name: node.name,
-    value: toLiquidVariable(node.value),
-    position: position(node),
-    source: node.source,
-  };
-}
-
-function toCycleMarkup(node: ConcreteLiquidTagCycleMarkup): CycleMarkup {
-  return {
-    type: NodeTypes.CycleMarkup,
-    groupName: node.groupName ? toExpression(node.groupName) : null,
-    args: node.args.map(toExpression),
-    position: position(node),
-    source: node.source,
-  };
-}
-
-function toForMarkup(node: ConcreteLiquidTagForMarkup): ForMarkup {
+function toForMarkup(node: ConcreteTwigTagForMarkup): ForMarkup {
   return {
     type: NodeTypes.ForMarkup,
     variableName: node.variableName,
@@ -1278,9 +1051,7 @@ function toForMarkup(node: ConcreteLiquidTagForMarkup): ForMarkup {
   };
 }
 
-function toRawMarkup(
-  node: ConcreteHtmlRawTag | ConcreteLiquidRawTag,
-): RawMarkup {
+function toRawMarkup(node: ConcreteHtmlRawTag | ConcreteTwigRawTag): RawMarkup {
   return {
     type: NodeTypes.RawMarkup,
     kind: toRawMarkupKind(node),
@@ -1294,19 +1065,19 @@ function toRawMarkup(
 }
 
 function toRawMarkupKind(
-  node: ConcreteHtmlRawTag | ConcreteLiquidRawTag,
+  node: ConcreteHtmlRawTag | ConcreteTwigRawTag,
 ): RawMarkupKinds {
   switch (node.type) {
     case ConcreteNodeTypes.HtmlRawTag:
       return toRawMarkupKindFromHtmlNode(node);
-    case ConcreteNodeTypes.LiquidRawTag:
-      return toRawMarkupKindFromLiquidNode(node);
+    case ConcreteNodeTypes.TwigRawTag:
+      return toRawMarkupKindFromTwigNode(node);
     default:
       return assertNever(node);
   }
 }
 
-const liquidToken = /(\{%|\{\{)-?/g;
+const twigToken = /\{%|\{\{/;
 
 function toRawMarkupKindFromHtmlNode(node: ConcreteHtmlRawTag): RawMarkupKinds {
   switch (node.name) {
@@ -1352,7 +1123,7 @@ function toRawMarkupKindFromHtmlNode(node: ConcreteHtmlRawTag): RawMarkupKinds {
       return RawMarkupKinds.javascript;
     }
     case 'style':
-      if (liquidToken.test(node.body)) {
+      if (twigToken.test(node.body)) {
         return RawMarkupKinds.text;
       }
       return RawMarkupKinds.css;
@@ -1361,43 +1132,40 @@ function toRawMarkupKindFromHtmlNode(node: ConcreteHtmlRawTag): RawMarkupKinds {
   }
 }
 
-function toRawMarkupKindFromLiquidNode(
-  node: ConcreteLiquidRawTag,
-): RawMarkupKinds {
+function toRawMarkupKindFromTwigNode(node: ConcreteTwigRawTag): RawMarkupKinds {
   switch (node.name) {
-    case 'javascript':
+    case 'js':
+    case 'script':
       return RawMarkupKinds.javascript;
-    case 'stylesheet':
+    case 'css':
     case 'style':
-      if (liquidToken.test(node.body)) {
+      if (twigToken.test(node.body)) {
         return RawMarkupKinds.text;
       }
       return RawMarkupKinds.css;
-    case 'schema':
-      return RawMarkupKinds.json;
     default:
       return RawMarkupKinds.text;
   }
 }
 
-function toRenderMarkup(node: ConcreteLiquidTagRenderMarkup): RenderMarkup {
+function toIncludeMarkup(node: ConcreteTwigTagIncludeMarkup): IncludeMarkup {
   return {
-    type: NodeTypes.RenderMarkup,
-    snippet: toExpression(node.snippet) as LiquidString | LiquidVariableLookup,
+    type: NodeTypes.IncludeMarkup,
+    template: toExpression(node.template) as TwigString | TwigVariableLookup,
     alias: node.alias,
-    variable: toRenderVariableExpression(node.variable),
+    variable: toIncludeVariableExpression(node.variable),
     args: node.args.map(toNamedArgument),
     position: position(node),
     source: node.source,
   };
 }
 
-function toRenderVariableExpression(
-  node: ConcreteRenderVariableExpression | null,
-): RenderVariableExpression | null {
+function toIncludeVariableExpression(
+  node: ConcreteIncludeVariableExpression | null,
+): IncludeVariableExpression | null {
   if (!node) return null;
   return {
-    type: NodeTypes.RenderVariableExpression,
+    type: NodeTypes.IncludeVariableExpression,
     kind: node.kind,
     name: toExpression(node.name),
     position: position(node),
@@ -1406,8 +1174,8 @@ function toRenderVariableExpression(
 }
 
 function toConditionalExpression(
-  nodes: ConcreteLiquidCondition[],
-): LiquidConditionalExpression {
+  nodes: ConcreteTwigCondition[],
+): TwigConditionalExpression {
   if (nodes.length === 1) {
     return toComparisonOrExpression(nodes[0]);
   }
@@ -1428,8 +1196,8 @@ function toConditionalExpression(
 }
 
 function toComparisonOrExpression(
-  node: ConcreteLiquidCondition,
-): LiquidComparison | LiquidExpression {
+  node: ConcreteTwigCondition,
+): TwigComparison | TwigExpression {
   const expression = node.expression;
   switch (expression.type) {
     case ConcreteNodeTypes.Comparison:
@@ -1439,7 +1207,7 @@ function toComparisonOrExpression(
   }
 }
 
-function toComparison(node: ConcreteLiquidComparison): LiquidComparison {
+function toComparison(node: ConcreteTwigComparison): TwigComparison {
   return {
     type: NodeTypes.Comparison,
     comparator: node.comparator,
@@ -1450,13 +1218,13 @@ function toComparison(node: ConcreteLiquidComparison): LiquidComparison {
   };
 }
 
-function toLiquidDrop(node: ConcreteLiquidDrop): LiquidDrop {
+function toTwigDrop(node: ConcreteTwigDrop): TwigDrop {
   return {
-    type: NodeTypes.LiquidDrop,
+    type: NodeTypes.TwigDrop,
     markup:
       typeof node.markup === 'string'
         ? node.markup
-        : toLiquidVariable(node.markup),
+        : toTwigVariable(node.markup),
     whitespaceStart: node.whitespaceStart ?? '',
     whitespaceEnd: node.whitespaceEnd ?? '',
     position: position(node),
@@ -1464,9 +1232,9 @@ function toLiquidDrop(node: ConcreteLiquidDrop): LiquidDrop {
   };
 }
 
-function toLiquidVariable(node: ConcreteLiquidVariable): LiquidVariable {
+function toTwigVariable(node: ConcreteTwigVariable): TwigVariable {
   return {
-    type: NodeTypes.LiquidVariable,
+    type: NodeTypes.TwigVariable,
     expression: toExpression(node.expression),
     filters: node.filters.map(toFilter),
     position: position(node),
@@ -1475,7 +1243,7 @@ function toLiquidVariable(node: ConcreteLiquidVariable): LiquidVariable {
   };
 }
 
-function toExpression(node: ConcreteLiquidExpression): LiquidExpression {
+function toExpression(node: ConcreteTwigExpression): TwigExpression {
   switch (node.type) {
     case ConcreteNodeTypes.String: {
       return {
@@ -1494,9 +1262,9 @@ function toExpression(node: ConcreteLiquidExpression): LiquidExpression {
         source: node.source,
       };
     }
-    case ConcreteNodeTypes.LiquidLiteral: {
+    case ConcreteNodeTypes.TwigLiteral: {
       return {
-        type: NodeTypes.LiquidLiteral,
+        type: NodeTypes.TwigLiteral,
         position: position(node),
         value: node.value,
         keyword: node.keyword,
@@ -1527,17 +1295,17 @@ function toExpression(node: ConcreteLiquidExpression): LiquidExpression {
   }
 }
 
-function toFilter(node: ConcreteLiquidFilter): LiquidFilter {
+function toFilter(node: ConcreteTwigFilter): TwigFilter {
   return {
-    type: NodeTypes.LiquidFilter,
+    type: NodeTypes.TwigFilter,
     name: node.name,
-    args: node.args.map(toLiquidArgument),
+    args: node.args.map(toTwigArgument),
     position: position(node),
     source: node.source,
   };
 }
 
-function toLiquidArgument(node: ConcreteLiquidArgument): LiquidArgument {
+function toTwigArgument(node: ConcreteTwigArgument): TwigArgument {
   switch (node.type) {
     case ConcreteNodeTypes.NamedArgument: {
       return toNamedArgument(node);
@@ -1548,9 +1316,7 @@ function toLiquidArgument(node: ConcreteLiquidArgument): LiquidArgument {
   }
 }
 
-function toNamedArgument(
-  node: ConcreteLiquidNamedArgument,
-): LiquidNamedArgument {
+function toNamedArgument(node: ConcreteTwigNamedArgument): TwigNamedArgument {
   return {
     type: NodeTypes.NamedArgument,
     name: node.name,
@@ -1566,7 +1332,7 @@ function toHtmlElement(
 ): HtmlElement {
   return {
     type: NodeTypes.HtmlElement,
-    name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+    name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
     attributes: toAttributes(node.attrList || [], options),
     position: position(node),
     blockStartPosition: position(node),
@@ -1582,7 +1348,7 @@ function toHtmlDanglingMarkerOpen(
 ): HtmlDanglingMarkerOpen {
   return {
     type: NodeTypes.HtmlDanglingMarkerOpen,
-    name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+    name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
     attributes: toAttributes(node.attrList || [], options),
     position: position(node),
     blockStartPosition: position(node),
@@ -1596,7 +1362,7 @@ function toHtmlDanglingMarkerClose(
 ): HtmlDanglingMarkerClose {
   return {
     type: NodeTypes.HtmlDanglingMarkerClose,
-    name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+    name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
     position: position(node),
     blockStartPosition: position(node),
     source: node.source,
@@ -1623,7 +1389,7 @@ function toHtmlSelfClosingElement(
 ): HtmlSelfClosingElement {
   return {
     type: NodeTypes.HtmlSelfClosingElement,
-    name: cstToAst(node.name, options) as (TextNode | LiquidDrop)[],
+    name: cstToAst(node.name, options) as (TextNode | TwigDrop)[],
     attributes: toAttributes(node.attrList || [], options),
     position: position(node),
     blockStartPosition: position(node),
@@ -1644,7 +1410,7 @@ const MAX_NUMBER_OF_SIBLING_DANGLING_NODES = 2;
 
 function isAcceptableDanglingMarkerOpen(
   builder: ASTBuilder,
-  cst: LiquidHtmlCST,
+  cst: TwigHtmlCST,
   currIndex: number,
 ): boolean {
   return isAcceptableDanglingMarker(
@@ -1657,7 +1423,7 @@ function isAcceptableDanglingMarkerOpen(
 
 function isAcceptableDanglingMarkerClose(
   builder: ASTBuilder,
-  cst: LiquidHtmlCST,
+  cst: TwigHtmlCST,
   currIndex: number,
 ): boolean {
   return isAcceptableDanglingMarker(
@@ -1670,7 +1436,7 @@ function isAcceptableDanglingMarkerClose(
 
 function isAcceptableDanglingMarker(
   builder: ASTBuilder,
-  cst: LiquidHtmlCST,
+  cst: TwigHtmlCST,
   currIndex: number,
   nodeType: ConcreteNodeTypes.HtmlTagOpen | ConcreteNodeTypes.HtmlTagClose,
 ): boolean {
@@ -1707,25 +1473,20 @@ function isAcceptingDanglingMarkers(
   const { parent, grandparent } = builder;
   if (!parent || !grandparent) return false;
   return (
-    parent.type === NodeTypes.LiquidBranch &&
-    grandparent.type === NodeTypes.LiquidTag &&
-    ['if', 'unless', 'case'].includes(grandparent.name) &&
+    parent.type === NodeTypes.TwigBranch &&
+    grandparent.type === NodeTypes.TwigTag &&
+    grandparent.name === 'if' &&
     builder.current.every((node) => node.type === DanglingMapping[nodeType])
   );
 }
 
 // checking that is a {% else %} or {% endif %}
-function isConcreteExceptionEnd(node: LiquidHtmlConcreteNode | undefined) {
+function isConcreteExceptionEnd(node: TwigHtmlConcreteNode | undefined) {
   return (
     !node ||
-    node.type === ConcreteNodeTypes.LiquidTagClose ||
-    isConcreteLiquidBranchDisguisedAsTag(node)
+    node.type === ConcreteNodeTypes.TwigTagClose ||
+    isConcreteTwigBranchDisguisedAsTag(node)
   );
-}
-
-function markup(name: string, markup: string) {
-  if (TAGS_WITHOUT_MARKUP.includes(name)) return '';
-  return markup;
 }
 
 function position(node: HasPosition): Position {
@@ -1736,9 +1497,9 @@ function position(node: HasPosition): Position {
 }
 
 export function walk(
-  ast: LiquidHtmlNode,
-  fn: (ast: LiquidHtmlNode, parentNode: LiquidHtmlNode | undefined) => void,
-  parentNode?: LiquidHtmlNode,
+  ast: TwigHtmlNode,
+  fn: (ast: TwigHtmlNode, parentNode: TwigHtmlNode | undefined) => void,
+  parentNode?: TwigHtmlNode,
 ) {
   for (const key of Object.keys(ast)) {
     if (nonTraversableProperties.has(key)) {
@@ -1748,9 +1509,9 @@ export function walk(
     const value = (ast as any)[key];
     if (Array.isArray(value)) {
       value
-        .filter(isLiquidHtmlNode)
-        .forEach((node: LiquidHtmlNode) => walk(node, fn, ast));
-    } else if (isLiquidHtmlNode(value)) {
+        .filter(isTwigHtmlNode)
+        .forEach((node: TwigHtmlNode) => walk(node, fn, ast));
+    } else if (isTwigHtmlNode(value)) {
       walk(value, fn, ast);
     }
   }

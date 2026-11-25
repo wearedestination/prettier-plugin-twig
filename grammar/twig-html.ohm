@@ -1,0 +1,366 @@
+Helpers {
+  Node = TextNode*
+  TextNode = AnyExceptPlus<openControl>
+  openControl = empty
+
+  empty = /* nothing */
+  anyExceptStar<lit> = (~ lit any)*
+  anyExceptPlus<lit> = (~ lit any)+
+  AnyExceptPlus<lit> = (~ lit any)+
+  identifierCharacter = alnum | "_" | "-"
+
+  nonemptyOrderedListOf<a, b, sep> =
+    | nonemptyListOf<b, sep>
+    | nonemptyOrderedListOfBoth<a, b, sep>
+    | nonemptyListOf<a, sep>
+  nonemptyOrderedListOfBoth<a, b, sep> =
+    nonemptyListOf<a, sep> (sep nonemptyListOf<b, sep>)
+
+  singleQuote = "'" | "‘" | "’"
+  doubleQuote = "\"" | "“" | "”"
+  controls = "\u{007F}".."\u{009F}"
+  noncharacters = "\u{FDD0}".."\u{FDEF}"
+  newline = "\r"? "\n"
+}
+
+Twig <: Helpers {
+  Node := (twigNode | TextNode)*
+  openControl := "{{" | "{%"
+  endOfTagName = &("-%}" | "-}}" | "~%}" | "~}}" | "%}" | "}}")
+  whitespaceControl = "-" | "~"
+  endOfVarName = ~identifierCharacter
+  endOfIdentifier = endOfTagName | endOfVarName
+
+  twigNode =
+    | twigRawTag
+    | twigDrop
+    | twigTagClose
+    | twigTagOpen
+    | twigTag
+    | twigInlineComment
+
+  twigTagStrict =
+    | twigTagElse
+    | twigTagElseif
+    | twigTagInclude
+
+  twigTag =
+    | twigTagStrict
+    | twigTagBaseCase
+
+  twigTagOpenStrict =
+    | twigTagOpenFor
+    | twigTagOpenIf
+
+  twigTagOpen =
+    | twigTagOpenStrict
+    | twigTagOpenBaseCase
+
+  twigTagClose = "{%" whitespaceControl? space* "end" blockName space* tagMarkup whitespaceControl? "%}"
+
+  // These two are the same but transformed differently
+  twigTagRule<name, markup> =
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* markup whitespaceControl? "%}"
+  twigTagOpenRule<name, markup> =
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* markup whitespaceControl? "%}"
+
+  twigTagBaseCase = twigTagRule<twigTagName, tagMarkup>
+
+  twigTagInclude = twigTagRule<"include", twigTagIncludeMarkup>
+  twigTagIncludeMarkup =
+    templateExpression includeVariableExpression? includeAliasExpression? (argumentSeparatorOptionalComma tagArguments) space*
+  templateExpression = twigString | variableSegmentAsLookup
+  includeVariableExpression = space+ ("for" | "with") space+ twigExpression
+  includeAliasExpression = space+ "as" space+ variableSegment
+
+  twigTagOpenBaseCase = twigTagOpenRule<blockName, tagMarkup>
+
+  twigTagOpenFor = twigTagOpenRule<"for", twigTagOpenForMarkup>
+  twigTagOpenForMarkup =
+    variableSegment space* "in" space* twigExpression
+    (space* "reversed")? argumentSeparatorOptionalComma
+    tagArguments space*
+
+  twigTagOpenIf = twigTagOpenRule<"if", twigTagOpenConditionalMarkup>
+  twigTagElseif = twigTagRule<"elseif", twigTagOpenConditionalMarkup>
+
+  twigTagElse = twigTagRule<"else", empty>
+
+  twigTagOpenConditionalMarkup = nonemptyListOf<condition, conditionSeparator> space*
+  conditionSeparator = &logicalOperator
+  condition = logicalOperator? space* (comparison | twigExpression) space*
+  logicalOperator = ("and" | "or") ~identifier
+  comparison = twigExpression space* comparator space* twigExpression
+  comparator =
+    ( "=="
+    | "!="
+    | ">="
+    | "<="
+    | ">"
+    | "<")
+    | ("contains" ~identifier)
+
+  twigDrop = "{{" whitespaceControl? space* twigDropCases whitespaceControl? "}}"
+  twigDropCases = twigVariable | twigDropBaseCase
+  // Twig closes an output tag on the first "}}" *at bracket depth zero*, not on
+  // the first "}}" it sees. Scanning naively would truncate the markup of e.g.
+  // {{ form_widget(x, {'attr': {'rows': 3}}) }}, where the "}}" closing the two
+  // nested hashes is part of the expression. So we consume balanced brackets
+  // and quoted strings as units, and only stop on a "}}" outside of both.
+  //
+  // Every sub-rule falls back to a plain character, so unbalanced input still
+  // degrades to the old "stop at the first }}" behaviour instead of failing.
+  twigDropBaseCase = twigDropBaseCaseChar*
+  twigDropBaseCaseChar =
+    | twigDropQuoted
+    | twigDropBracketed
+    | (~("-}}" | "~}}" | "}}") any)
+  twigDropBracketed =
+    | "{" twigDropBracketedChar* "}"
+    | "[" twigDropBracketedChar* "]"
+    | "(" twigDropBracketedChar* ")"
+  twigDropBracketedChar =
+    | twigDropQuoted
+    | twigDropBracketed
+    | (~("}" | "]" | ")" | openControl) any)
+  // A string may legitimately contain "}}", but never an unescaped tag opener —
+  // the lookahead keeps an unterminated quote (`{{ it's }}`) from swallowing the
+  // rest of the document while hunting for a closing quote.
+  twigDropQuoted =
+    | "'" (~("'" | openControl) any)* "'"
+    | "\"" (~("\"" | openControl) any)* "\""
+  twigInlineComment = "{#" whitespaceControl? space? twigTagMarkup whitespaceControl? "#}"
+
+  twigRawTag =
+    | twigVerbatimTag
+    | twigAssetTag<"js">
+    | twigAssetTag<"script">
+    | twigAssetTag<"css">
+    | twigAssetTag<"style">
+  twigVerbatimTag =
+    | twigRawTagImpl<"verbatim", twigVerbatimTagBody<"verbatim">>
+    | twigRawTagImpl<"raw", twigVerbatimTagBody<"raw">>
+  twigVerbatimTagBody<name> = anyExceptStar<twigRawTagClose<name>>
+  // The content of an asset tag may contain a "{#" that doesn't open a comment,
+  // e.g. a private class field. So when there is no valid body that takes
+  // comments into account, we look for one that doesn't.
+  twigAssetTag<name> =
+    | twigRawTagImpl<name, twigAssetTagBody<name>>
+    | twigRawTagImpl<name, anyExceptStar<twigAssetTagBoundary<name>>>
+  twigAssetTagBody<name> =
+    (twigVerbatimTag | twigInlineComment | (~twigAssetTagBoundary<name> any))*
+  // Asset tags are also used without a closing tag, e.g. {% js 'app.js' %}. The
+  // body can't contain another opening tag, so that a standalone tag doesn't
+  // swallow everything up to the end of the next pair.
+  twigAssetTagBoundary<name> = twigRawTagOpen<name> | twigRawTagClose<name>
+  twigRawTagImpl<name, body> =
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
+    body
+    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
+  twigRawTagOpen<name> =
+    "{%" whitespaceControl? space* (name endOfIdentifier)
+  twigRawTagClose<name> =
+    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
+
+  // In order for the grammar to "fallback" to the base case, this
+  // rule must pass if and only if we support what we parse. This
+  // implies that—since we don't support filters yet—we have a
+  // positive lookahead on "-}}" or "}}" in the rule. We do this
+  // because we'd otherwise positively match the following string
+  // instead of falling back to the other rule:
+  // {{ 'string' | some_filter }}
+  twigVariable = twigExpression twigFilter* space* &twigStatementEnd
+  twigStatementEnd = ("-}}" | "~}}" | "}}" | "-%}" | "~%}" | "%}")
+
+  twigExpression =
+    | twigString
+    | twigNumber
+    | twigLiteral
+    | twigRange
+    | twigVariableLookup
+
+  twigString = twigSingleQuotedString | twigDoubleQuotedString
+  twigSingleQuotedString = "'" anyExceptStar<("'"| "%}" | "}}")> "'"
+  twigDoubleQuotedString = "\"" anyExceptStar<("\""| "%}" | "}}")> "\""
+
+  twigNumber = twigFloat | twigInteger
+  twigInteger = "-"? digit+
+  twigFloat = "-"? digit+ "." digit+
+
+  twigLiteral =
+    ( "true"
+    | "false"
+    | "blank"
+    | "empty"
+    | "nil"
+    | "null"
+    ) endOfIdentifier
+
+  twigRange =
+    "(" space* twigExpression space* ".." space* twigExpression space* ")"
+
+  twigVariableLookup =
+    | variableSegment lookup*
+    | empty lookup+
+  lookup =
+    | indexLookup
+    | dotLookup
+  indexLookup = space* "[" space* twigExpression space* "]"
+  dotLookup = space* "." space* identifier
+
+  twigFilter = space* "|" space* identifier (space* ":" space* arguments)?
+
+  arguments = nonemptyOrderedListOf<positionalArgument, namedArgument, argumentSeparator>
+  argumentSeparator = space* "," space*
+  argumentSeparatorOptionalComma = space* ","? space*
+  positionalArgument = twigExpression ~(space* ":")
+  namedArgument = variableSegment space* ":" space* twigExpression
+  tagArguments = listOf<namedArgument, argumentSeparatorOptionalComma>
+
+  variableSegment = (letter | "_") identifierCharacter*
+  variableSegmentAsLookup = variableSegment
+  identifier = variableSegment "?"?
+
+  tagMarkup = anyExceptStar<("-%}"| "~%}" | "%}")>
+  twigTagMarkup = anyExceptStar<("-#}"| "~#}" | "#}")>
+
+  twigTagName =
+    letter (alnum | "_")*
+
+  blockName =
+    ( "for"
+    | "if"
+    | "block"
+    ) endOfIdentifier
+}
+
+TwigHTML <: Twig {
+  Node := yamlFrontmatter? (HtmlNode | twigNode | TextNode)*
+  openControl += "<"
+
+  yamlFrontmatter =
+    "---" newline anyExceptStar<"---"> "---" newline
+
+  HtmlNode =
+    | HtmlDoctype
+    | HtmlComment
+    | HtmlRawTag
+    | HtmlVoidElement
+    | HtmlSelfClosingElement
+    | HtmlTagClose
+    | HtmlTagOpen
+
+  // https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+  HtmlDoctype =
+    #("<!" caseInsensitive<"doctype"> space+ caseInsensitive<"html">) legacyDoctypeString? ">"
+  legacyDoctypeString
+    = anyExceptPlus<">">
+
+  HtmlComment = "<!--" #(anyExceptStar<"-->"> "-->")
+
+  // These are black holes, we'll ignore what's in them
+  HtmlRawTag =
+    | HtmlRawTagImpl<"script">
+    | HtmlRawTagImpl<"style">
+    | HtmlRawTagImpl<"svg">
+
+  HtmlRawTagImpl<name> =
+    TagStart<name>
+      (HtmlRawTagImpl<name> | AnyExceptPlus<(TagStart<name> | TagEnd<name>)>)*
+    TagEnd<name>
+  TagStart<name> = "<" name AttrList ">"
+  TagEnd<name> = "</" name ">"
+
+  HtmlVoidElement =
+    #("<" voidElementName &(space | "/" | ">")) AttrList "/"? ">"
+
+  HtmlSelfClosingElement =
+    #("<" tagName) AttrList "/>"
+
+  HtmlTagOpen =
+    #("<" tagName) AttrList ">"
+
+  HtmlTagClose =
+    #("</" tagName) ">"
+
+  tagName = leadingTagNamePart trailingTagNamePart*
+
+  // The difference here is that the first text part must start
+  // with a letter, but trailing text parts don't have that
+  // requirement
+  leadingTagNamePart =
+    | twigDrop
+    | leadingTagNameTextNode
+
+  trailingTagNamePart =
+    | twigDrop
+    | trailingTagNameTextNode
+
+  leadingTagNameTextNode = letter (alnum | "-" | ":")*
+  trailingTagNameTextNode = (alnum | "-" | ":")+
+
+  AttrList = Attr*
+
+  Attr =
+    twigNode | AttrSingleQuoted | AttrDoubleQuoted | AttrUnquoted | attrEmpty
+
+  attrEmpty = attrName
+
+  AttrUnquoted = attrName "=" attrUnquotedValue
+  AttrSingleQuoted = attrName "=" singleQuote #(attrSingleQuotedValue singleQuote)
+  AttrDoubleQuoted = attrName "=" doubleQuote #(attrDoubleQuotedValue doubleQuote)
+
+  attrName = (twigDrop | attrNameTextNode)+
+
+  // https://html.spec.whatwg.org/#attributes-2
+  attrNameTextNode = anyExceptPlus<(space | quotes | "=" | ">" | "/>" | "{{" | "{%" | controls | noncharacters)>
+  attrUnquotedValue = (twigDrop | attrUnquotedTextNode)*
+  attrSingleQuotedValue = (twigNode | attrSingleQuotedTextNode)*
+  attrDoubleQuotedValue = (twigNode | attrDoubleQuotedTextNode)*
+
+  attrUnquotedTextNode = anyExceptPlus<(space | quotes | "=" | "<" | ">" | "`" | "{{" | "{%")>
+  attrSingleQuotedTextNode = anyExceptPlus<(singleQuote | "{{" | "{%")>
+  attrDoubleQuotedTextNode = anyExceptPlus<(doubleQuote | "{{" | "{%")>
+
+  quotes = singleQuote | doubleQuote
+
+  // https://www.w3.org/TR/2011/WD-html-markup-20110113/syntax.html#void-element
+  voidElementName =
+    ( caseInsensitive<"area">
+    | caseInsensitive<"base">
+    | caseInsensitive<"br">
+    | caseInsensitive<"col">
+    | caseInsensitive<"command">
+    | caseInsensitive<"embed">
+    | caseInsensitive<"hr">
+    | caseInsensitive<"img">
+    | caseInsensitive<"input">
+    | caseInsensitive<"keygen">
+    | caseInsensitive<"link">
+    | caseInsensitive<"meta">
+    | caseInsensitive<"param">
+    | caseInsensitive<"source">
+    | caseInsensitive<"track">
+    | caseInsensitive<"wbr">
+    ) ~identifierCharacter
+}
+
+StrictTwig <: Twig {
+  twigTag := twigTagStrict
+  twigTagOpen := twigTagOpenStrict
+}
+
+StrictTwigHTML <: TwigHTML {
+  twigTag := twigTagStrict
+  twigTagOpen := twigTagOpenStrict
+}
+
+WithPlaceholderTwig <: Twig {
+  twigTagName := (letter | "█") (alnum | "_")*
+  variableSegment := (letter | "_" | "█") identifierCharacter*
+}
+
+WithPlaceholderTwigHTML <: TwigHTML {
+  twigTagName := (letter | "█") (alnum | "_")*
+  variableSegment := (letter | "_" | "█") identifierCharacter*
+}

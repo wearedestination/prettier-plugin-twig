@@ -2,7 +2,7 @@
 
 This project is a Prettier plugin for formatting Twig templates. It is a fork of the [Shopify Liquid Prettier plugin](https://github.com/Shopify/theme-tools/tree/main/packages/prettier-plugin-liquid), adapted to work with Twig syntax instead of Liquid. Much of the underlying parser, printer, and formatting logic still mirrors the upstream Liquid plugin — when investigating behavior or making changes, it can be useful to keep the Liquid origin in mind.
 
-Because of the Liquid heritage, the parser name is still `liquid-html` and many internal types/files retain `liquid` in their names (e.g. `LiquidParserOptions`, `printer-liquid-html.ts`). This is intentional — don't rename them.
+Upstream's `Liquid*` identifiers and files are named `Twig*` here (e.g. upstream `LiquidDrop` is `TwigDrop`, `printer-liquid-html.ts` is `printer-twig-html.ts`), so translate names when comparing against upstream.
 
 ## Repository — issues and PRs live on the fork
 
@@ -36,8 +36,8 @@ When testing changes in the CLI, use the `prettier` package.json script instead 
 
 ## Source layout
 
-- `src/parser/` — Ohm grammar (`grammar/liquid-html.ohm`) → CST (`stage-1-cst.ts`) → AST (`stage-2-ast.ts`).
-- `src/printer/` — turns the AST into a Prettier `Doc`. `printer-liquid-html.ts` is the entry point; `print/` holds per-node printers and `preprocess/` holds AST transformations applied before printing.
+- `src/parser/` — Ohm grammar (`grammar/twig-html.ohm`) → CST (`stage-1-cst.ts`) → AST (`stage-2-ast.ts`).
+- `src/printer/` — turns the AST into a Prettier `Doc`. `printer-twig-html.ts` is the entry point; `print/` holds per-node printers and `preprocess/` holds AST transformations applied before printing.
 - `src/index.ts` — Prettier plugin definition (parsers, printers, options).
 
 ## Tests

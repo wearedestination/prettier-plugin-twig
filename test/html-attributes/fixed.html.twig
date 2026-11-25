@@ -17,7 +17,7 @@ singleQuote: true
   disabled
 ></div>
 
-It should break LiquidTags attribute nodes and consider the insides _not_ whitespace sensitive
+It should break TwigTags attribute nodes and consider the insides _not_ whitespace sensitive
 <div
   src="https://content.instructables.com/ORIG/F23/YMO0/FPIUQOJF/F23YMO0FPIUQOJF.jpg"
   width="320"
@@ -59,9 +59,9 @@ It should break and indent attributes that are long af
   "
   src="{{ media | image_url: width: 1946 }}"
   sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 | times: media_width | round }}px, (min-width: 990px) calc({{ media_width | times: 100 }}vw - 10rem), (min-width: 750px) calc((100vw - 11.5rem) / 2), calc(100vw - 4rem)"
-  {% unless lazy_load == false %}
+  {% if lazy_load == false %}
     loading="lazy"
-  {% endunless %}
+  {% endif %}
   width="973"
   height="{{ 973 | divided_by: media.preview_image.aspect_ratio | ceil }}"
   alt="{{ media.preview_image.alt | escape }}"
@@ -80,17 +80,17 @@ If there's only one attribute and not self-closing, but with children, do not br
   Hello
 </div>
 
-If there's only one attribute, not self-closing, with children, do not break the LiquidTag attr and close the tag on a different line.
-<div {% echo 'disabled' %}>
+If there's only one attribute, not self-closing, with children, do not break the TwigTag attr and close the tag on a different line.
+<div {% do 'disabled' %}>
   Hello
 </div>
 
-If there's only one attribute, not self-closing, with children, do not break the LiquidNode attr and close the tag on a different line.
+If there's only one attribute, not self-closing, with children, do not break the TwigNode attr and close the tag on a different line.
 <div {{ block_attributes }}>
   Hello
 </div>
 
-If there's only one attribute, not self closing, with children, but the attribute is a liquid tag that has children, break it normally.
+If there's only one attribute, not self closing, with children, but the attribute is a twig tag that has children, break it normally.
 printWidth: 30
 <div
   {% if some_condition %}
@@ -100,7 +100,7 @@ printWidth: 30
   hello world
 </div>
 
-If there's only one attribute, not self closing, without children, but the attribute is a liquid tag that has children, break it normally.
+If there's only one attribute, not self closing, without children, but the attribute is a twig tag that has children, break it normally.
 printWidth: 30
 <div
   {% if some_condition %}
@@ -148,17 +148,17 @@ If singleQuote is false, and the attribute value has twig tags that contain doub
 singleQuote: false
 <script src='{{ "styles.css" | asset_url }}'></script>
 
-It should pretty print attribute names with Liquid in them
+It should pretty print attribute names with Twig in them
 singleQuote: true
 <div data-popup-{{ section.id }}='size-{{ section.id }}'></div>
 
-It should pretty print attribute names with Liquid in them without new lines
+It should pretty print attribute names with Twig in them without new lines
 printWidth: 1
 <div
   data-popup-{{ section.id | upcase }}="size-{{ section.id }}"
 ></div>
 
-It should pretty unquoted liquid drop attributes
+It should pretty unquoted twig drop attributes
 <div id="{{ section.id }}--omg"></div>
 
 It should pretty print smart quotes into dumb quotes to prevent copy pasting errors

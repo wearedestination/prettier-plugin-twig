@@ -1,5 +1,5 @@
 import { Doc, doc } from 'prettier';
-import { LiquidAstPath, LiquidHtmlNode, LiquidBranch } from '~/types';
+import { TwigHtmlNode, TwigBranch } from '~/types';
 import { isBranchedTag } from '~/parser';
 import { isEmpty } from '~/printer/utils/array';
 
@@ -10,18 +10,12 @@ export * from '~/printer/utils/node';
 const { builders } = doc;
 const { ifBreak } = builders;
 
-export function getSource(path: LiquidAstPath) {
-  return path.getValue().source;
-}
-
 export function isDeeplyNested(
-  node: Extract<LiquidHtmlNode, { children?: LiquidHtmlNode[] }>,
+  node: Extract<TwigHtmlNode, { children?: TwigHtmlNode[] }>,
 ): boolean {
   if (!node.children) return false;
   if (isBranchedTag(node)) {
-    return !!node.children.find((child) =>
-      isDeeplyNested(child as LiquidBranch),
-    );
+    return !!node.children.find((child) => isDeeplyNested(child as TwigBranch));
   }
   return !!node.children.find(
     (child) => !isEmpty((child as any).children || []),
@@ -63,8 +57,4 @@ export function ifBreakChain(
       ifBreak(breaksContent, currFlatContent, { groupId }),
     flatContent,
   );
-}
-
-export function isNonEmptyArray(object: any): object is any[] {
-  return Array.isArray(object) && object.length > 0;
 }

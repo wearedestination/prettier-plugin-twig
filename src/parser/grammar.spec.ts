@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { placeholderGrammars, strictGrammars, tolerantGrammars } from '~/parser/grammar';
 
-describe('Unit: liquidHtmlGrammar', () => {
+describe('Unit: twigHtmlGrammar', () => {
   const grammars = [
     { mode: 'strict', grammar: strictGrammars },
     { mode: 'tolerant', grammar: tolerantGrammars },
@@ -9,7 +9,7 @@ describe('Unit: liquidHtmlGrammar', () => {
   ];
 
   describe(`Case: common to all grammars`, () => {
-    it('should parse or not parse HTML+Liquid', () => {
+    it('should parse or not parse HTML+Twig', () => {
       grammars.forEach(({ grammar }) => {
         expectMatchSucceeded('<h6 data-src="hello world">').to.be.true;
         expectMatchSucceeded('<a src="https://product"></a>').to.be.true;
@@ -26,26 +26,17 @@ describe('Unit: liquidHtmlGrammar', () => {
         expectMatchSucceeded(`{%- if A -%}`).to.be.true;
         expectMatchSucceeded(`{%-if A-%}`).to.be.true;
         expectMatchSucceeded(`{%- else-%}`).to.be.true;
-        expectMatchSucceeded(`{%- break-%}`).to.be.true;
-        expectMatchSucceeded(`{%- continue -%}`).to.be.true;
-        expectMatchSucceeded(`{%- liquid-%}`).to.be.true;
-        expectMatchSucceeded(`{%- schema-%}{% endschema %}`).to.be.true;
-        expectMatchSucceeded(`{%- form 'form-type'-%}`).to.be.true;
+        expectMatchSucceeded(`{%- verbatim-%}{% endverbatim %}`).to.be.true;
         expectMatchSucceeded(`{# a comment #}`).to.be.true;
-        expectMatchSucceeded(`{%- javascript -%}{% endjavascript %}`).to.be.true;
+        expectMatchSucceeded(`{%- js -%}{% endjs %}`).to.be.true;
         expectMatchSucceeded(`{%- include 'layout' -%}`).to.be.true;
-        expectMatchSucceeded(`{%- layout 'full-width' -%}`).to.be.true;
-        expectMatchSucceeded(`{%- layout none -%}`).to.be.true;
-        expectMatchSucceeded(`{% render 'filename' for array as item %}`).to.be.true;
-        expectMatchSucceeded(`{% section 'name' %}`).to.be.true;
-        expectMatchSucceeded(`{% sections 'name' %}`).to.be.true;
+        expectMatchSucceeded(`{% include 'layout' with variables %}`).to.be.true;
         expectMatchSucceeded(`{% style %}{% endstyle %}`).to.be.true;
-        expectMatchSucceeded(`{% stylesheet %}{% endstylesheet %}`).to.be.true;
-        expectMatchSucceeded(`{% assign variable_name = value %}`).to.be.true;
+        expectMatchSucceeded(`{% css %}{% endcss %}`).to.be.true;
         expectMatchSucceeded(`
-          {% capture variable %}
+          {% if variable %}
             value
-          {% endcapture %}
+          {% endif %}
         `).to.be.true;
         expectMatchSucceeded(`
           {% for variable in array limit: number %}
@@ -53,8 +44,6 @@ describe('Unit: liquidHtmlGrammar', () => {
           {% endfor %}
         `).to.be.true;
 
-        expectMatchSucceeded(`{% decrement variable_name %}`).to.be.true;
-        expectMatchSucceeded(`{% increment variable_name %}`).to.be.true;
         expectMatchSucceeded(`{{ true-}}`).to.be.true;
         expectMatchSucceeded(`
           <html>
@@ -96,30 +85,7 @@ describe('Unit: liquidHtmlGrammar', () => {
         expectMatchSucceeded('<6h>').to.be.false;
 
         function expectMatchSucceeded(text: string) {
-          const match = grammar.LiquidHTML.match(text, 'Node');
-          return expect(match.succeeded(), text);
-        }
-      });
-    });
-
-    it('should parse or not parse {% liquid %} lines', () => {
-      grammars.forEach(({ grammar }) => {
-        expectMatchSucceeded(`
-          layout none
-
-          paginate search.results by 28
-            for item in search.results
-              if item.object_type != 'product'
-                continue
-              endif
-
-              render 'product-item', product: item
-            endfor
-          endpaginate
-        `).to.be.true;
-
-        function expectMatchSucceeded(text: string) {
-          const match = grammar.LiquidStatement.match(text.trimStart(), 'Node');
+          const match = grammar.TwigHTML.match(text, 'Node');
           return expect(match.succeeded(), text);
         }
       });
@@ -132,17 +98,15 @@ describe('Unit: liquidHtmlGrammar', () => {
       expectMatchSucceeded('{{ █ }}').to.be.true;
       expectMatchSucceeded('{{ var.█ }}').to.be.true;
       expectMatchSucceeded('{{ var[█] }}').to.be.true;
-      expectMatchSucceeded('{% echo █ %}').to.be.true;
-      expectMatchSucceeded('{% echo var.█ %}').to.be.true;
-      expectMatchSucceeded('{% echo var[█] %}').to.be.true;
-      expectMatchSucceeded('{% echo var | █ %}').to.be.true;
-      expectMatchSucceeded('{% echo var | replace: █ %}').to.be.true;
-      expectMatchSucceeded('{% echo var | replace: "foo", █ %}').to.be.true;
-      expectMatchSucceeded('{% echo var | replace: "foo", var: █ %}').to.be.true;
+      expectMatchSucceeded('{% include █ %}').to.be.true;
+      expectMatchSucceeded('{{ var | █ }}').to.be.true;
+      expectMatchSucceeded('{{ var | replace: █ }}').to.be.true;
+      expectMatchSucceeded('{{ var | replace: "foo", █ }}').to.be.true;
+      expectMatchSucceeded('{{ var | replace: "foo", var: █ }}').to.be.true;
     });
 
     function expectMatchSucceeded(text: string) {
-      const match = placeholderGrammars.Liquid.match(text.trimStart(), 'Node');
+      const match = placeholderGrammars.Twig.match(text.trimStart(), 'Node');
       return expect(match.succeeded(), text);
     }
   });

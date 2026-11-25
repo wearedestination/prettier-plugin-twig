@@ -1,0 +1,47 @@
+It should not reindent verbatim tags bodies, as this tag is indentation sensitive
+<div>
+  {% verbatim %}
+  const a = [1, 2, 3];
+  const b = function() {
+    return null;
+  }
+
+  const config = {
+    product: {{ product | json }},
+  };
+
+  for (const x of foo) {
+    if (true) {
+      // noooo
+    }
+  }
+  {% endverbatim %}
+  {% verbatim %}
+  <div x=1 y=2 z=3>UNCLOSED HAHA
+{% endverbatim %}
+</div>
+
+It should be indentation (and whitespace) sensitive
+<p>
+  {% verbatim %}
+  # markdown example
+
+  - this is a list
+  	* this is indented with mixed tabs!
+{% endverbatim %}
+</p>
+
+It should be indentation (and whitespace) sensitive (useTabs)
+useTabs: true
+<p>
+	{% verbatim %}
+  # markdown example
+
+  - this is a list
+  	* this is indented with mixed tabs!
+{% endverbatim %}
+</p>
+
+It should keep the whitespace control of each delimiter
+{%- verbatim %}a{% endverbatim %}
+{% verbatim -%}a{%- endverbatim %}

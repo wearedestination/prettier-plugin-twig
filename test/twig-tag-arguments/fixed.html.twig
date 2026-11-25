@@ -1,0 +1,9 @@
+It should preserve arguments from raw tags
+{% js at POS_END %}
+{% endjs %}
+{% style 'theme.css' at 'head' %}
+{% endstyle %}
+{% raw what %}{% endraw %}
+
+It should preserve arguments from else tags to avoid silent code changes
+{% if cond %}{% else what %}{% endif %}

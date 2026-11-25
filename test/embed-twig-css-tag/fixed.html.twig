@@ -1,0 +1,29 @@
+It should pretty print CSS inside css tags
+printWidth: 20
+{% css %}
+  .class,
+  #id,
+  html,
+  body {
+    background-color: green;
+    width: 100%;
+  }
+  .container {
+    display: flex;
+  }
+{% endcss %}
+
+It should fallback to reindenting when it doesn't parse
+printWidth: 20
+{% css %}
+  .class,#id,html,body{background-color:{{setting.color}};width:100%}
+  .container{display:flex;}
+{% endcss %}
+
+It should leave every stylesheet containing Twig unparsed
+{% css %}
+  a { b: calc({{ c }}px + 1px) }
+{% endcss %}
+{% css %}
+  a { b: calc({{ c }}px + 1px) }
+{% endcss %}

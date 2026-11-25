@@ -5,7 +5,7 @@ import * as prettier from 'prettier';
 import * as plugin from '../src';
 import { parse } from '../src/parser/parser';
 import { preprocess } from '../src/printer/print-preprocess';
-import { LiquidParserOptions } from '../src/types';
+import { TwigParserOptions } from '../src/types';
 
 const PARAGRAPH_SPLITTER =
   /(?:\r?\n){2,}(?=\/\/|It|When|If|focus|debug|skip|<)/i;
@@ -38,7 +38,7 @@ const TEST_IDEMPOTENCE = !!(
 
 export function assertFormattedEqualsFixed(
   dirname: string,
-  options: Partial<LiquidParserOptions> = {},
+  options: Partial<TwigParserOptions> = {},
 ) {
   const source = readFile(dirname, 'index.html.twig');
   const expectedResults = readFile(dirname, 'fixed.html.twig');
@@ -111,9 +111,8 @@ function getTestSetup(paragraph: string, index: number) {
     .replace(/\r?\n/g, ' ')
     .trimEnd()
     .replace(/\.$/, '');
-  const prettierOptions: Partial<LiquidParserOptions> = {
+  const prettierOptions: Partial<TwigParserOptions> = {
     printWidth: 80, // We changed the default, but the tests were written with 80 in mind.
-    indentSchema: true, // We changed the default, but the tests were written with true in mind.
     trailingComma: 'es5', // prettier 3 changed the default from "es5" to "all", but our tests were written for prettier 2
   };
   const optionsParser = /(?<name>\w+): (?<value>[^\s]*)/g;

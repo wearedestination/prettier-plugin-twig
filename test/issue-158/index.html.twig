@@ -10,9 +10,9 @@ It should maintain at most 1 newline between attributes, and none at the end
     value="{{ variant.id }}"
     required
 
-    {% unless variant.available %}
+    {% if variant.available %}
       disabled
-    {% endunless %}
+    {% endif %}
 
     {% if product.selected_variant == variant %}
       checked
