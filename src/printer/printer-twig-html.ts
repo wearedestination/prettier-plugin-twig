@@ -33,6 +33,7 @@ import { assertNever } from '~/utils';
 import { preprocess } from '~/printer/print-preprocess';
 import {
   bodyLines,
+  canUseQuote,
   hasLineBreakInRange,
   isEmpty,
   reindent,
@@ -540,10 +541,10 @@ function printNode(
 
     case NodeTypes.String: {
       const preferredQuote = options.twigSingleQuote ? `'` : `"`;
-      const valueHasQuotes = node.value.includes(preferredQuote);
-      const quote = valueHasQuotes
-        ? oppositeQuotes[preferredQuote]
-        : preferredQuote;
+      const originalQuote = node.single ? `'` : `"`;
+      const quote = canUseQuote(node.value, preferredQuote)
+        ? preferredQuote
+        : originalQuote;
       return [quote, node.value, quote];
     }
 
