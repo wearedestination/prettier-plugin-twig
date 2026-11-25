@@ -27,3 +27,10 @@ It should fallback to reindenting when it contains twig in calc. (somehow this p
   }
 }
 {%- endstyle -%}
+
+It should ignore commented out opening tags in the body
+{% style %}
+{# {% style 'old.css' %} #}
+/* note */
+a { color: {{ c }}; }
+{% endstyle %}

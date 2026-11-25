@@ -54,8 +54,49 @@ import { RawMarkupKinds } from '~/parser';
 import { getConditionalComment } from '~/parser/conditional-comment';
 
 const { builders, utils } = doc;
-const { fill, group, hardline, indent, join, line, softline } = builders;
+const { fill, group, hardline, indent, join, line, literalline, softline } =
+  builders;
 const { replaceEndOfLine } = utils as any;
+
+/**
+ * Reindenting the inside of a template literal would change its contents. The
+ * lines before the first backtick and after the last one are always outside,
+ * but what's in between is only known when there are exactly two backticks.
+ */
+function printScriptWithTemplateLiterals(source: string): Doc {
+  const startsOnTagLine = /^[ \t]*\S/.test(source);
+  const body = startsOnTagLine
+    ? source.trim()
+    : source.replace(/^(?:[ \t]*\r?\n)+/, '').trimEnd();
+  const lines = body.split(/\r?\n/);
+  const linesWithBacktick = lines
+    .map((line, i) => (line.includes('`') ? i : -1))
+    .filter((i) => i !== -1);
+  const first = linesWithBacktick[0];
+  const last = linesWithBacktick[linesWithBacktick.length - 1];
+
+  if (first !== last && body.split('`').length - 1 !== 2) {
+    // Keep every line where it was, so that they remain aligned.
+    return [startsOnTagLine ? '' : builders.trim, replaceEndOfLine(body)];
+  }
+
+  const isInsideLiteral = (i: number) => i > first && i <= last;
+  const minIndentLevel = lines
+    .filter((_, i) => !isInsideLiteral(i) && !(startsOnTagLine && i === 0))
+    .filter((line) => line.trim().length > 0)
+    .map((line) => (line.match(/^\s*/) as any)[0].length)
+    .reduce((a, b) => Math.min(a, b), Infinity);
+
+  return lines.map((line, i) => {
+    if (isInsideLiteral(i)) return [literalline, line];
+    const isBlank = line.trim() === '';
+    const reindented =
+      isBlank || (startsOnTagLine && i === 0)
+        ? line.trimStart()
+        : line.slice(minIndentLevel);
+    return i === 0 ? reindented : [hardline, reindented];
+  });
+}
 
 const oppositeQuotes = {
   '"': "'",
@@ -301,9 +342,8 @@ function printNode(
         }
       };
 
-      // Reindenting would change the contents of template literals.
       if (isRawMarkupIdentationSensitive()) {
-        return replaceEndOfLine(node.value.trim());
+        return printScriptWithTemplateLiterals(node.value);
       }
 
       const lines = bodyLines(node.value);

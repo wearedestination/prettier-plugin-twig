@@ -77,3 +77,31 @@ It should not reindent template literals when it can't parse the source
      b`
 </script>
 </div>
+
+It should reindent everything outside of a template literal
+<div>
+<script>
+const a = `x`;
+if (a) {
+  c('{{ z }}');
+}
+</script>
+<script>
+const a = '{{ z }}';
+if (a) {
+  c(`x
+    y`);
+  d();
+}
+</script>
+</div>
+
+It should keep lines aligned when they could be inside a template literal
+<div>
+<script>
+const a = `x`;
+if (a) {
+  c(`{{ z }}`);
+}
+</script>
+</div>

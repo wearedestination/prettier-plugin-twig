@@ -132,20 +132,31 @@ Twig <: Helpers {
   twigInlineComment = "{#" whitespaceControl? space? twigTagMarkup whitespaceControl? "#}"
 
   twigRawTag =
-    | twigRawTagImpl<"verbatim", twigRawTagClose<"verbatim">>
-    | twigRawTagImpl<"raw", twigRawTagClose<"raw">>
-    | twigRawTagImpl<"js", twigAssetTagBoundary<"js">>
-    | twigRawTagImpl<"script", twigAssetTagBoundary<"script">>
-    | twigRawTagImpl<"css", twigAssetTagBoundary<"css">>
-    | twigRawTagImpl<"style", twigAssetTagBoundary<"style">>
-  twigRawTagImpl<name, boundary> =
-    "{%" whitespaceControl? space* (name endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
-    anyExceptStar<boundary>
-    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
+    | twigVerbatimTag
+    | twigAssetTag<"js">
+    | twigAssetTag<"script">
+    | twigAssetTag<"css">
+    | twigAssetTag<"style">
+  twigVerbatimTag =
+    | twigRawTagImpl<"verbatim", twigVerbatimTagBody<"verbatim">>
+    | twigRawTagImpl<"raw", twigVerbatimTagBody<"raw">>
+  twigVerbatimTagBody<name> = anyExceptStar<twigRawTagClose<name>>
+  // The content of an asset tag may contain a "{#" that doesn't open a comment,
+  // e.g. a private class field. So when there is no valid body that takes
+  // comments into account, we look for one that doesn't.
+  twigAssetTag<name> =
+    | twigRawTagImpl<name, twigAssetTagBody<name>>
+    | twigRawTagImpl<name, anyExceptStar<twigAssetTagBoundary<name>>>
+  twigAssetTagBody<name> =
+    (twigVerbatimTag | twigInlineComment | (~twigAssetTagBoundary<name> any))*
   // Asset tags are also used without a closing tag, e.g. {% js 'app.js' %}. The
   // body can't contain another opening tag, so that a standalone tag doesn't
   // swallow everything up to the end of the next pair.
   twigAssetTagBoundary<name> = twigRawTagOpen<name> | twigRawTagClose<name>
+  twigRawTagImpl<name, body> =
+    "{%" whitespaceControl? space* (name endOfIdentifier) space* tagMarkup whitespaceControl? "%}"
+    body
+    "{%" whitespaceControl? space* "end" (name endOfIdentifier) space* whitespaceControl? "%}"
   twigRawTagOpen<name> =
     "{%" whitespaceControl? space* (name endOfIdentifier)
   twigRawTagClose<name> =

@@ -67,3 +67,51 @@ It should support the script tag
   // hi
   foo();
 {% endscript %}
+
+It should not format markup as JSX
+{% js %}
+  <script>
+    // hi
+    foo( )
+  </script>
+{% endjs %}
+{% script %}
+  // comment
+  /* other */
+  <script src="a.js"></script>
+{% endscript %}
+
+It should ignore commented out opening tags in the body
+{% js %}
+  {# {% js 'old.js' %} #}
+  // hi
+  foo( )
+{% endjs %}
+
+It should format the arguments like those of standalone tags
+<div>
+  {% js 'a.js' %}
+    foo();
+  {% endjs %}
+  {%
+    js with {
+      type: 'module',
+    }
+  %}
+    foo();
+  {% endjs %}
+</div>
+
+It should support opening comment delimiters that aren't comments
+{% js %}
+  class A {#x=1}
+{% endjs %}
+<p>{# comment #}</p>
+{% js %}
+  {% verbatim %}class A {#x=1}{% endverbatim %}
+  // hi
+{% endjs %}
+{% js %}
+  foo();
+{% endjs %}
+{# comment #}

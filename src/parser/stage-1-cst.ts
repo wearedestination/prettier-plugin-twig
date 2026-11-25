@@ -475,6 +475,8 @@ function toCST<T>(
   const TwigMappings: Mapping = {
     twigNode: 0,
     twigRawTag: 0,
+    twigVerbatimTag: 0,
+    twigAssetTag: 0,
     twigRawTagImpl: {
       type: ConcreteNodeTypes.TwigRawTag,
       name: 3,

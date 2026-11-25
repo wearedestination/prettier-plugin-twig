@@ -14,6 +14,9 @@ export const ParserMap: { [key in RawMarkupKinds]: string | null } = {
   [RawMarkupKinds.text]: null,
 };
 
+// Markup that is only preceded by whitespace and JS comments
+const startsWithMarkup = /^(?:\s|\/\/[^\n]*\n|\/\*(?:(?!\*\/)[\s\S])*\*\/)*</;
+
 export const embed: Printer<TwigHtmlNode>['embed'] = (path, options) => {
   return (textToDoc) => {
     const node = path.node as TwigHtmlNode;
@@ -25,10 +28,13 @@ export const embed: Printer<TwigHtmlNode>['embed'] = (path, options) => {
         const isScript =
           node.kind === RawMarkupKinds.javascript ||
           node.kind === RawMarkupKinds.typescript;
-        if (
-          (isScript || path.parent?.type === NodeTypes.TwigRawTag) &&
-          hasTwigToken(node.value)
-        ) {
+        const isInTwigRawTag = path.parent?.type === NodeTypes.TwigRawTag;
+        if ((isScript || isInTwigRawTag) && hasTwigToken(node.value)) {
+          return undefined;
+        }
+        // The JS parsers would format e.g. {% js %}<script>...</script>{% endjs %}
+        // as JSX.
+        if (isScript && isInTwigRawTag && startsWithMarkup.test(node.value)) {
           return undefined;
         }
         const parser = ParserMap[node.kind];

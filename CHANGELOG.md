@@ -11,7 +11,7 @@
 
 ## Features
 
-* Format the contents of `{% js %}`, `{% script %}` and `{% css %}` as JavaScript and CSS, and leave the contents of `{% verbatim %}` untouched. Contents that use Twig are only reindented
+* Format the contents of `{% js %}`, `{% script %}` and `{% css %}` as JavaScript and CSS, and leave the contents of `{% verbatim %}` untouched. Contents that use Twig, or JavaScript that starts with markup, are only reindented
 
 ## Fixes
 

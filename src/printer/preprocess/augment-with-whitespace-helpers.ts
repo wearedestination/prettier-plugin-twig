@@ -326,7 +326,7 @@ function isTrailingWhitespaceSensitiveNode(node: AugmentedAstNode): boolean {
   //  - this node is pre-like (whitespace outside pre tags is irrelevant)
   //  - this node is script-like (since the whitespace following a script is irrelevant)
   //  - the parent is not (inner) trailing whitespace sensitive (e.g. block)
-  //  - the parent is trimming the inner right (e.g. {% block %} hello {%- endborm %})
+  //  - the parent is trimming the inner right (e.g. {% block %} hello {%- endblock %})
   //  - the node is an attribute node
   //
   // prettier-ignore

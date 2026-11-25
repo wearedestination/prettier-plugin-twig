@@ -213,9 +213,25 @@ export function printTwigBlockStart(
     ]);
   }
 
+  return printBaseCaseBlockStart(
+    node.name,
+    node.markup,
+    whitespaceStart,
+    whitespaceEnd,
+    options,
+  );
+}
+
+function printBaseCaseBlockStart(
+  name: string,
+  markup: string,
+  whitespaceStart: Doc,
+  whitespaceEnd: Doc,
+  options: TwigParserOptions,
+): Doc {
   // Transform quotes in base case markup based on twigSingleQuote option
   const transformedMarkup = transformStringQuotes(
-    node.markup,
+    markup,
     options.twigSingleQuote,
   );
   const lines = markupLines(transformedMarkup);
@@ -225,7 +241,7 @@ export function printTwigBlockStart(
     return group([
       '{%',
       whitespaceStart,
-      indent([hardline, node.name, ' ', join(hardline, reindentedLines)]),
+      indent([hardline, name, ' ', join(hardline, reindentedLines)]),
       hardline,
       whitespaceEnd,
       '%}',
@@ -236,7 +252,7 @@ export function printTwigBlockStart(
     '{%',
     whitespaceStart,
     ' ',
-    node.name,
+    name,
     transformedMarkup ? ` ${transformedMarkup}` : '',
     ' ',
     whitespaceEnd,
@@ -357,7 +373,7 @@ export function printTwigTag(
 
 export function printTwigRawTag(
   path: AstPath<TwigRawTag>,
-  _options: TwigParserOptions,
+  options: TwigParserOptions,
   print: TwigPrinter,
   _args: TwigPrinterArgs,
 ): Doc {
@@ -371,16 +387,13 @@ export function printTwigRawTag(
       node.body.position.start,
       node.body.position.end,
     );
-  const blockStart = group([
-    '{%',
-    node.whitespaceStart,
-    ' ',
+  const blockStart = printBaseCaseBlockStart(
     node.name,
-    ' ',
-    node.markup ? `${node.markup} ` : '',
+    node.markup,
+    node.whitespaceStart,
     node.whitespaceEnd,
-    '%}',
-  ]);
+    options,
+  );
   const blockEnd = [
     '{%',
     node.delimiterWhitespaceStart,
