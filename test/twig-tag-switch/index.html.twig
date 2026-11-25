@@ -5,3 +5,39 @@ It should treat case as a standalone tag
 {% default %}
 <p>Other</p>
 {% endswitch %}
+
+It should support multiple values
+{% switch a %}
+{% case "h2" or "h3" %}
+<h2>a</h2>
+{% endswitch %}
+
+It should support nesting
+{% for b in blocks %}
+{% switch b.type %}
+{% case 'a' %}
+{% if x %}<p>y</p>{% else %}<p>n</p>{% endif %}
+{% case 'c' %}
+{% switch b.z %}
+{% case 1 %}
+<i>q</i>
+{% endswitch %}
+{% endswitch %}
+{% endfor %}
+
+It should not affect the branches of a parent
+{% if a %}
+{% switch b %}
+{% case 1 %}
+<p>x</p>
+{% default %}
+<p>y</p>
+{% endswitch %}
+{% else %}
+<p>z</p>
+{% endif %}
+
+It should support attributes
+printWidth: 120
+<p class="{% switch a %}{% case 'b' %}x{% default %}y{% endswitch %}">a</p>
+<div {% switch a %}{% case 'b' %}class="x"{% default %}id="y"{% endswitch %}>a</div>

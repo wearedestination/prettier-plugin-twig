@@ -45,3 +45,7 @@ useTabs: true
 It should keep the whitespace control of each delimiter
 {%- verbatim %}a{% endverbatim %}
 {% verbatim -%}a{%- endverbatim %}
+
+It should leave verbatim tags in attributes untouched
+<div {% verbatim %}:a="{{ b }}"{% endverbatim %}></div>
+<div class="{% verbatim %}{{b}}{% endverbatim %}"></div>

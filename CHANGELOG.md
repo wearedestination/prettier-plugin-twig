@@ -3,31 +3,32 @@
 
 ## Breaking changes
 
-* Remove the `liquid-html` parser alias — use `twig` (or drop the `parser` setting and let Prettier infer it from the `.twig` extension)
-* Remove the deprecated `liquidSingleQuote` option — use `twigSingleQuote`
-* Remove support for tags that only exist in Liquid: `assign`, `break`, `capture`, `case`/`when`, `comment`, `continue`, `cycle`, `decrement`, `echo`, `elsif`, `form`, `ifchanged`, `increment`, `layout`, `liquid`, `render`, `section`, `sections`, `tablerow` and `unless`. They are now formatted like any other unrecognised tag, so their contents are no longer indented (or, for `comment`, left unparsed)
-* Replace the Shopify raw tags `javascript`, `schema` and `stylesheet` with `js`, `script`, `css` and `verbatim`. The Shopify tags are now formatted like any other unrecognised tag, including their contents
-* Remove the `indentSchema` option, which only applied to `{% schema %}`
+* Removed the `liquid-html` parser alias — use `twig` (or drop the `parser` setting and let Prettier infer it from the `.twig` extension)
+* Removed the deprecated `liquidSingleQuote` option — use `twigSingleQuote`
+* Removed support for tags that only exist in Liquid: `assign`, `break`, `capture`, `case`/`when`, `comment`, `continue`, `cycle`, `decrement`, `echo`, `elsif`, `form`, `ifchanged`, `increment`, `layout`, `liquid`, `render`, `section`, `sections`, `tablerow` and `unless`. They are now formatted like any other unrecognised tag, so their contents are no longer indented (or, for `comment`, left unparsed)
+* Replaced the Shopify raw tags `javascript`, `schema` and `stylesheet` with `js`, `script`, `css` and `verbatim`. The Shopify tags are now formatted like any other unrecognised tag, including their contents
+* Removed the `indentSchema` option, which only applied to `{% schema %}`
+* Made a `{#` that is never closed in text and attributes a parse error, as it is in Twig, e.g. `<p>{#fff}</p>`. It was treated as text
 
 ## Features
 
-* Format the contents of `{% js %}`, `{% script %}` and `{% css %}` as JavaScript and CSS, and leave the contents of `{% verbatim %}` untouched. Contents that use Twig, or JavaScript that starts with markup, are only reindented
+* Added formatting of the contents of `{% js %}`, `{% script %}` and `{% css %}` as JavaScript and CSS, and left the contents of `{% verbatim %}` untouched. CSS that uses Twig, JavaScript that uses Twig outside of strings, and JavaScript that starts with markup are only reindented. The `type` in the arguments, e.g. `{% script with { type: 'application/json' } %}`, determines whether a script is formatted as JavaScript, TypeScript or JSON, and other types are only reindented
 
 ## Fixes
 
-* Only reindent JavaScript and TypeScript in `<script>` elements when it contains Twig. `{{ output }}` could be rewritten as nested JavaScript blocks, breaking the template
-* Do not add blank lines around unparsed scripts containing template literals every time they are formatted
-* Keep the arguments of `{% style %}` and `{% raw %}`, e.g. `{% style 'theme.css' at 'head' %}`, instead of removing them
-* Print the whitespace control of a raw tag's closing delimiter as written, instead of copying it from the opening one
-* Leave every stylesheet that contains Twig unparsed. Some were formatted as plain CSS depending on the stylesheets before them
-* Parse `{# #}` comments that come after text or inside attribute names and values. Their contents were treated as template code, which could fail to parse or reflow a multi-line comment into the text before it
-* Craft CMS `{% switch %}`/`{% case %}` blocks no longer fail to parse
-* Keep the quotes of strings whose meaning depends on them, i.e. those containing `#{…}` interpolation or a backslash, e.g. `{{ "#{x}" }}`, `{% include "#{x}.twig" %}` and `{{ a["#{x}"] }}`
-* Do not change quotes inside of `#{…}` interpolation, e.g. `{{ "#{a["b"]}" }}`
+* Limited the formatting of JavaScript and TypeScript that contains Twig to when it's `{{ output }}` in strings, e.g. `const a = '{{ x }}'`, and kept the quotes of those strings. Otherwise it is only reindented. `{{ output }}` could be rewritten as nested JavaScript blocks, and `'{{ a ~ '-' ~ b }}'` could be changed to `'{{ a ~ ' - ' ~ b }}'`, breaking the template
+* Stopped adding blank lines around unparsed scripts containing template literals every time they are formatted, and reindented the code outside of the literals when they can be located
+* Kept the arguments of `{% style %}` and `{% raw %}`, e.g. `{% style 'theme.css' at 'head' %}`, instead of removing them, and formatted them like those of other tags
+* Printed the whitespace control of a raw tag's closing delimiter as written, instead of copying it from the opening one
+* Left every stylesheet that contains Twig unparsed. Some were formatted as plain CSS depending on the stylesheets before them
+* Fixed the parsing of `{# #}` comments that come after text or inside attribute names and values. Their contents were treated as template code, which could fail to parse or reflow a multi-line comment into the text before it
+* Fixed Craft CMS `{% switch %}`/`{% case %}` blocks failing to parse
+* Kept the quotes of strings whose meaning depends on them, i.e. those containing `#{…}` interpolation or a backslash, e.g. `{{ "#{x}" }}`, `{% include "#{x}.twig" %}` and `{{ a["#{x}"] }}`
+* Stopped changing quotes inside of `#{…}` interpolation, e.g. `{{ "#{a["b"]}" }}`
 
 ## Notes
 
-* AST node types, the AST format and the published grammar file are named after Twig (e.g. `LiquidDrop` is now `TwigDrop`, `liquid-html-ast` is now `twig-html-ast`, `grammar/liquid-html.ohm` is now `grammar/twig-html.ohm`). Only affects code that inspects the AST or imports the plugin's internals
+* Renamed AST node types, the AST format and the published grammar file after Twig (e.g. `LiquidDrop` is now `TwigDrop`, `liquid-html-ast` is now `twig-html-ast`, `grammar/liquid-html.ohm` is now `grammar/twig-html.ohm`). Only affects code that inspects the AST or imports the plugin's internals
 
 
 3.1.0 / 2026-08-13

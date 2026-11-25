@@ -4,6 +4,7 @@ import { isBranchedTag } from '~/parser';
 import { isEmpty } from '~/printer/utils/array';
 
 export * from '~/printer/utils/array';
+export * from '~/printer/utils/script';
 export * from '~/printer/utils/string';
 export * from '~/printer/utils/node';
 
