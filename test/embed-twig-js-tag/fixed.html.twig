@@ -115,3 +115,68 @@ It should support opening comment delimiters that aren't comments
   foo();
 {% endjs %}
 {# comment #}
+
+It should support the position of a script
+{% js at head %}
+  foo();
+{% endjs %}
+{% js on ready %}
+  foo();
+{% endjs %}
+{% js 'app.js' at endBody with {defer: true} %}
+<p>hello</p>
+
+It should format modules
+{% script with {type: 'module'} %}
+  import a from './a.js';
+  await a();
+{% endscript %}
+
+It should format JSON
+{% script with {type: 'application/ld+json'} %}
+  [{ "@type": "Person" }]
+{% endscript %}
+{% script with {defer: true, 'type': 'importmap'} %}
+  { "imports": {} }
+{% endscript %}
+{% script with {type: 'application/json'} %}
+  {{ data|json_encode|raw }}
+{% endscript %}
+
+It should format TypeScript
+{% script with {type: 'application/x-typescript'} %}
+  const a: string = 'b';
+{% endscript %}
+
+It should only reindent scripts whose type isn't known
+{% script with {type: 'text/plain'} %}
+  foo - bar
+{% endscript %}
+{% script with {type: someType} %}
+  foo - bar
+{% endscript %}
+{% script with attributes %}
+  foo - bar
+{% endscript %}
+{% script with {a: b, ...attributes} %}
+  foo - bar
+{% endscript %}
+{% script with {a: b}|merge(attributes) %}
+  foo - bar
+{% endscript %}
+{% script with {type: 'module', data: {type: 'text/plain'}} %}
+  foo - bar
+{% endscript %}
+
+It should not reindent template literals when the type isn't known
+<div>
+  {% script with attributes %}
+    const a = `
+  b`;
+  {% endscript %}
+</div>
+
+It should format scripts that only contain Twig in strings
+{% js %}
+  foo('{{ x }}');
+{% endjs %}

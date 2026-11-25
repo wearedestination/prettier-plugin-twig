@@ -2,7 +2,7 @@
 
 Requirements:
 
-- Node v16+
+- Node v22.13+
 - pnpm
 
 ```

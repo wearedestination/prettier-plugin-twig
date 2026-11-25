@@ -94,11 +94,11 @@ It should reindent everything outside of a template literal
   <script>
     const a = `x`;
     if (a) {
-      c('{{ z }}');
+      c({{ z }});
     }
   </script>
   <script>
-    const a = '{{ z }}';
+    const a = {{ z }};
     if (a) {
       c(`x
     y`);
@@ -116,3 +116,50 @@ if (a) {
 }
   </script>
 </div>
+
+It should format scripts that only contain Twig in strings
+<script>
+  foo('{{ x }}', "{{ path('a', {b: 'c'}) }}");
+  foo('{{ path('a') }}', '{{ a ~ '-' ~ b }}', 'a{{- x -}}b');
+  a = { '{{ x }}': 1, b: y["{{ z }}"] };
+</script>
+<script type="application/x-typescript">
+  const a: string = '{{ x }}';
+</script>
+
+It should keep the quotes of strings that contain Twig
+embeddedSingleQuote: false
+<script>
+  foo("a", '{{ json|raw }}');
+</script>
+
+It should not format scripts that contain Twig outside of strings
+<script>
+  foo( '{{ x }}', {{ y }} )
+</script>
+<script>
+  // {{ x }}
+  foo( '{{ y }}' )
+</script>
+<script>
+  foo( `{{ x }}` )
+</script>
+<script>
+  foo( /{{ x }}/ )
+</script>
+<script>
+  if (a) {{ b }}
+</script>
+
+It should not format scripts that contain Twig tags or comments
+<script>
+  foo( '{% if a %}', 'b{% endif %}' )
+</script>
+<script>
+  foo( 'a{# c #}' )
+</script>
+
+It should not format scripts that contain Twig in strings whose contents would change
+<script>
+  foo( 'it\'s {{ x }}' )
+</script>

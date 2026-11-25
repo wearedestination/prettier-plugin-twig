@@ -1114,10 +1114,7 @@ function toRawMarkupKindFromHtmlNode(node: ConcreteHtmlRawTag): RawMarkupKinds {
         return RawMarkupKinds.html;
       }
 
-      if (
-        (type && (type.endsWith('json') || type.endsWith('importmap'))) ||
-        type === 'speculationrules'
-      ) {
+      if (isJsonScriptType(type)) {
         return RawMarkupKinds.json;
       }
 
@@ -1133,11 +1130,65 @@ function toRawMarkupKindFromHtmlNode(node: ConcreteHtmlRawTag): RawMarkupKinds {
   }
 }
 
+function isJsonScriptType(type: string) {
+  return (
+    type.endsWith('json') ||
+    type.endsWith('importmap') ||
+    type === 'speculationrules'
+  );
+}
+
+/**
+ * The type of script is given by its attributes, e.g.
+ * {% script with { type: 'application/json' } %}. When we can't tell what they
+ * are, or don't recognise the type, we don't parse the contents.
+ */
+function toRawMarkupKindFromScriptArguments(markup: string): RawMarkupKinds {
+  const attributes = markup.match(/(?:^|\s)with\b\s*([\s\S]*)$/)?.[1];
+  if (attributes === undefined) return RawMarkupKinds.javascript;
+
+  const isStatic =
+    attributes.startsWith('{') && !/\.\.\.|\|\s*merge\b/.test(attributes);
+  if (!isStatic) return RawMarkupKinds.text;
+
+  const kinds = Array.from(
+    attributes.matchAll(
+      /[{,]\s*(['"]?)type\1\s*:\s*(?:(['"])(.*?)\2\s*(?=[,}]))?/g,
+    ),
+    ([, , , type]) => toRawMarkupKindFromScriptType(type),
+  );
+  if (kinds.length === 0) return RawMarkupKinds.javascript;
+  return kinds.every((kind) => kind === kinds[0])
+    ? kinds[0]
+    : RawMarkupKinds.text;
+}
+
+function toRawMarkupKindFromScriptType(
+  type: string | undefined,
+): RawMarkupKinds {
+  if (type === undefined) return RawMarkupKinds.text;
+  const name = type.split(';')[0].trim().toLowerCase();
+  if (isJsonScriptType(name)) return RawMarkupKinds.json;
+  switch (name) {
+    case '':
+    case 'module':
+    case 'text/javascript':
+    case 'application/javascript':
+    case 'text/ecmascript':
+    case 'application/ecmascript':
+      return RawMarkupKinds.javascript;
+    case 'application/x-typescript':
+      return RawMarkupKinds.typescript;
+    default:
+      return RawMarkupKinds.text;
+  }
+}
+
 function toRawMarkupKindFromTwigNode(node: ConcreteTwigRawTag): RawMarkupKinds {
   switch (node.name) {
     case 'js':
     case 'script':
-      return RawMarkupKinds.javascript;
+      return toRawMarkupKindFromScriptArguments(node.markup);
     case 'css':
     case 'style':
       if (twigToken.test(node.body)) {

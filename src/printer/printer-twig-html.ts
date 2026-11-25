@@ -337,6 +337,15 @@ function printNode(
           case RawMarkupKinds.javascript: {
             return node.value.includes('`');
           }
+          case RawMarkupKinds.text: {
+            // It could be a script whose type isn't known.
+            const parent = path.getParentNode() as TwigHtmlNode | null;
+            return (
+              parent?.type === NodeTypes.TwigRawTag &&
+              ['js', 'script'].includes(parent.name) &&
+              node.value.includes('`')
+            );
+          }
           default: {
             return false;
           }

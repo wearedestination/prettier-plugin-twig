@@ -19,3 +19,15 @@ a { b: calc({{ c }}px + 1px) }
 {% css %}
 a { b: calc({{ c }}px + 1px) }
 {% endcss %}
+
+It should support attributes
+{% css with {type: 'text/css'} %}
+a{b:c}
+{% endcss %}
+
+It should not swallow content after a standalone tag
+{% css "https://example.com/a.css" with {media: "print"} %}
+<p>hello</p>
+{% css %}
+a{b:c}
+{% endcss %}
