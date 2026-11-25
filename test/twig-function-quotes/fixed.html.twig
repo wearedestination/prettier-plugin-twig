@@ -47,3 +47,61 @@ twigSingleQuote: false
 
 It should still convert strings with a bare hash
 {% set a = 'plain #tag' %}
+
+It should not convert a double-quoted interpolated string
+{{ "#{x}" }}
+
+It should not convert a single-quoted literal hash brace when twigSingleQuote is false
+twigSingleQuote: false
+{{ '#{x}' }}
+
+It should not convert interpolated strings in conditions
+{% if a == "#{x}" %}
+  yes
+{% elseif b == "#{y}" %}
+  no
+{% endif %}
+
+It should not convert single-quoted literal hash braces in conditions when twigSingleQuote is false
+twigSingleQuote: false
+{% if a == '#{x}' %}yes{% endif %}
+
+It should not convert an interpolated include template
+{% include "#{x}.twig" %}
+
+It should not convert a single-quoted include template when twigSingleQuote is false
+twigSingleQuote: false
+{% include '#{x}.twig' %}
+
+It should not convert interpolated strings in lookups
+{{ a["#{x}"] }}
+
+It should not convert single-quoted literal hash braces in lookups when twigSingleQuote is false
+twigSingleQuote: false
+{{ a['#{x}'] }}
+
+It should still convert other strings in lookups
+{{ a['x y'] }}
+
+It should not convert interpolated strings in filter arguments
+{{ a | f: "#{x}", 'y' }}
+
+It should not convert interpolated strings in attributes
+<a href='{{ "#{x}" }}'></a>
+
+It should not convert double-quoted strings containing a backslash
+{{ "a\n" }}
+{{ "\#{x}" }}
+
+It should not convert single-quoted strings containing a backslash when twigSingleQuote is false
+twigSingleQuote: false
+{{ 'a\n' }}
+
+It should not convert quotes nested inside of interpolation
+{{ "#{a["b"]}" }}
+
+It should still convert convertible strings next to nested interpolation
+{{ "#{f({k: "v"})} x" ~ 'y' }}
+
+It should not treat a hash brace in a single-quoted string as interpolation
+{{ '#{x' ~ 'y' }}

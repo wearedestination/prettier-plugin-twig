@@ -22,6 +22,8 @@
 * Leave every stylesheet that contains Twig unparsed. Some were formatted as plain CSS depending on the stylesheets before them
 * Parse `{# #}` comments that come after text or inside attribute names and values. Their contents were treated as template code, which could fail to parse or reflow a multi-line comment into the text before it
 * Craft CMS `{% switch %}`/`{% case %}` blocks no longer fail to parse
+* Keep the quotes of strings whose meaning depends on them, i.e. those containing `#{…}` interpolation or a backslash, e.g. `{{ "#{x}" }}`, `{% include "#{x}.twig" %}` and `{{ a["#{x}"] }}`
+* Do not change quotes inside of `#{…}` interpolation, e.g. `{{ "#{a["b"]}" }}`
 
 ## Notes
 
