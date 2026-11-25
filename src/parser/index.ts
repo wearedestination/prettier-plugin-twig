@@ -1,15 +1,13 @@
 import {
-  liquidHtmlParser,
-  liquidHtmlAstFormat,
-  liquidHtmlLanguageName,
+  twigHtmlParser,
+  twigHtmlAstFormat,
   twigLanguageName,
 } from '~/parser/parser';
 
 export * from '~/parser/stage-2-ast';
 
-export { twigLanguageName, liquidHtmlLanguageName, liquidHtmlAstFormat };
+export { twigLanguageName, twigHtmlAstFormat };
 
 export const parsers = {
-  [twigLanguageName]: liquidHtmlParser,
-  [liquidHtmlLanguageName]: liquidHtmlParser,
+  [twigLanguageName]: twigHtmlParser,
 };

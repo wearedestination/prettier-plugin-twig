@@ -11,12 +11,12 @@ It should not omit the leading space if there's space before the named branch
 {% if A %}X{% else %} space{% endif %}
 
 It should not omit the leading space if there's space before the named branch
-(elsif)
-{% if A %}{% elsif b %}{% else %} space{% endif %}
-{% if A %}{% elsif b %}X{% else %} space{% endif %}
-{% if A %}{% elsif b %} {% else %} space{% endif %}
-{% if A %}{% elsif b %}X {% else %} space{% endif %}
-{% if A %}{% elsif b %} X {% else %} space{% endif %}
+(elseif)
+{% if A %}{% elseif b %}{% else %} space{% endif %}
+{% if A %}{% elseif b %}X{% else %} space{% endif %}
+{% if A %}{% elseif b %} {% else %} space{% endif %}
+{% if A %}{% elseif b %}X {% else %} space{% endif %}
+{% if A %}{% elseif b %} X {% else %} space{% endif %}
 
 It should not omit the whitespace if it is included inline in a paragraph
 <p>

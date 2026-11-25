@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { deepGet } from '~/utils';
 import { NodeTypes } from '~/types';
-import { toLiquidHtmlAST } from '~/parser';
+import { toTwigHtmlAST } from '~/parser';
 import { preprocess } from '~/printer/print-preprocess';
-import { DocumentNode, LiquidHtmlNode, LiquidParserOptions } from '~/types';
+import { DocumentNode, TwigHtmlNode, TwigParserOptions } from '~/types';
 
 describe('Module: augmentWithWhitespaceHelpers', () => {
   let ast: DocumentNode;
@@ -23,7 +23,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return false when this node is whitespace stripping to the left', () => {
       const firstChilds = ['hello', '{{ drop }}', '{% if true %}hello{% endif %}'];
-      const secondChilds = ['{{- drop }}', '{%- echo "world" %}', '{%- if true %}hello{% endif %}'];
+      const secondChilds = ['{{- drop }}', '{%- do "world" %}', '{%- if true %}hello{% endif %}'];
       for (const left of firstChilds) {
         for (const right of secondChilds) {
           ast = toAugmentedAst(`<p>${left} ${right}</p>`);
@@ -33,7 +33,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
     });
 
     it('should return false when the previous node is whitespace stripping to the right', () => {
-      const firstChilds = ['{{ drop -}}', '{% echo "world" -%}', '{% if true %}hello{% endif -%}'];
+      const firstChilds = ['{{ drop -}}', '{% do "world" -%}', '{% if true %}hello{% endif -%}'];
       const secondChilds = ['hello', '{{ drop }}', '{% if true %}hello{% endif %}'];
       for (const left of firstChilds) {
         for (const right of secondChilds) {
@@ -86,28 +86,28 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
           '{% if true %}hello{% endif %}',
         ];
         for (const node of nodes) {
-          ast = toAugmentedAst(`{% form -%} ${node} {% endform %}`);
+          ast = toAugmentedAst(`{% block -%} ${node} {% endblock %}`);
           expectPath(ast, 'children.0.children.0.isLeadingWhitespaceSensitive').to.be.false;
 
           ast = toAugmentedAst(`{% if A -%} ${node} {% endif %}`);
-          expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.LiquidBranch);
+          expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TwigBranch);
           expectPath(ast, 'children.0.children.0.isLeadingWhitespaceSensitive').to.be.false;
           expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be
             .false;
 
           ast = toAugmentedAst(`{% if A %}hello{% else -%} ${node}{% endif %}`);
-          expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.LiquidBranch);
+          expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.TwigBranch);
           expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.1.children.0.isLeadingWhitespaceSensitive').to.be
             .false;
 
           ast = toAugmentedAst(`{% if A %} hello {%- else -%} ${node} {% endif %}`);
-          expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.LiquidBranch);
+          expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.TwigBranch);
           expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.false;
         }
       });
 
-      it('should return true for a LiquidBranch that is not stripped', () => {
+      it('should return true for a TwigBranch that is not stripped', () => {
         ast = toAugmentedAst(`{% if A %} hello {% else %} world {% endif %}`);
         expectPath(ast, 'children.0.children.0.isLeadingWhitespaceSensitive').to.be.true;
         expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.true;
@@ -126,7 +126,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return true to the left of a outer leading whitespace sensitive dangling marker open', () => {
       ast = toAugmentedAst('{% if cond %}<a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be.true;
@@ -153,7 +153,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return true to the left of a inner trailing whitespace sensitive dangling marker close', () => {
       ast = toAugmentedAst('{% if cond %}</a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be.true;
 
@@ -166,7 +166,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return false to the left of a inner trailing whitespace insensitive dangling marker close', () => {
       ast = toAugmentedAst('{% if cond %}</p>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be.false;
 
@@ -177,18 +177,18 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       expectPath(ast, 'children.0.children.0.children.1.isLeadingWhitespaceSensitive').to.be.false;
     });
 
-    describe('Case: LiquidBranch', () => {
+    describe('Case: TwigBranch', () => {
       describe('Case: default branch', () => {
         it('should return the leadingWhitespaceSensitivity of its first child', () => {
           ast = toAugmentedAst('{% if cond %}<a>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isLeadingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be
             .true;
 
           ast = toAugmentedAst('{% if cond %}<p>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isLeadingWhitespaceSensitive').to.be.false;
           expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.0.children.0.isLeadingWhitespaceSensitive').to.be
@@ -199,27 +199,27 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       describe('Case: other branches', () => {
         it('should return the trailingWhitespaceSensitivity of the default branch', () => {
           ast = toAugmentedAst('{% if cond %}{% else %}<a>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
-          expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.1.children.0.isLeadingWhitespaceSensitive').to.be
             .true;
 
           ast = toAugmentedAst('{% if cond %}<a>{% else %}<p>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
-          expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.1.children.0.isLeadingWhitespaceSensitive').to.be
             .false;
 
           ast = toAugmentedAst('{% if cond %}<p>{% else %}<a>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
-          expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.1.isLeadingWhitespaceSensitive').to.be.false;
           expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.1.children.0.isLeadingWhitespaceSensitive').to.be
@@ -235,13 +235,9 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
         'hello',
         '{{ drop }}',
         '{% if true %}hello{% endif %}',
-        '{% echo "hello" %}',
+        '{% do "hello" %}',
       ];
-      const secondChilds = [
-        '{{- drop }}',
-        '{%- if true %}world{% endif %}',
-        '{%- assign x = true %}',
-      ];
+      const secondChilds = ['{{- drop }}', '{%- if true %}world{% endif %}', '{%- set x = true %}'];
       for (const left of firstChilds) {
         for (const right of secondChilds) {
           ast = toAugmentedAst(`<p>${left} ${right}</p>`);
@@ -255,14 +251,14 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       const firstChilds = [
         '{{ drop -}}',
         '{% if true %}world{% endif -%}',
-        '{% form "cart" %}...{% endform -%}',
-        '{% assign x = true -%}',
+        '{% block cart %}...{% endblock -%}',
+        '{% set x = true -%}',
       ];
       const secondChilds = [
         'hello',
         '{{ drop }}',
         '{% if true %}hello{% endif %}',
-        '{% assign x = true %}',
+        '{% set x = true %}',
       ];
       for (const left of firstChilds) {
         for (const right of secondChilds) {
@@ -305,8 +301,8 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
         'hello world',
         '{{ drop }}',
         '{% if true %}world{% endif %}',
-        '{% form "cart" %}...{% endform %}',
-        '{% assign x = true %}',
+        '{% block cart %}...{% endblock %}',
+        '{% set x = true %}',
       ];
 
       for (const [wrapStart, wrapEnd] of wrappers) {
@@ -328,7 +324,7 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       });
 
       it('should return false for pre-like nodes', () => {
-        ast = toAugmentedAst('{% form %}hello <pre> ... </pre> {% endform %}');
+        ast = toAugmentedAst('{% block %}hello <pre> ... </pre> {% endblock %}');
         expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.false;
       });
 
@@ -339,47 +335,44 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
       it('should return false if the parent is trimming to the inner right', () => {
         ast = toAugmentedAst('{% if true %}branch a{%- else %}branch b{% endif %}');
-        expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.LiquidBranch);
+        expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TwigBranch);
         expectPath(ast, 'children.0.children.0.name').to.eql(null);
         expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be
           .false;
 
         ast = toAugmentedAst('{% if true %}branch a{% else %}branch b{%- endif %}');
-        expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.LiquidBranch);
+        expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.TwigBranch);
         expectPath(ast, 'children.0.children.1.name').to.eql('else');
         expectPath(ast, 'children.0.children.1.children.0.isTrailingWhitespaceSensitive').to.be
           .false;
 
-        ast = toAugmentedAst('{% form %}branch a{%- endform %}');
+        ast = toAugmentedAst('{% block %}branch a{%- endblock %}');
         expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
       });
     });
 
     it('should return false if the next child is not whitespace sensitive to the outer left', () => {
-      const blocks = ['<div> world </div>', '{% form %} hello {% endform %}'];
-      for (const block of blocks) {
-        ast = toAugmentedAst(`<p>Hello ${block}</p>`);
-        expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TextNode);
-        expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
-      }
+      ast = toAugmentedAst('<p>Hello <div> world </div></p>');
+      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TextNode);
+      expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
     });
 
     it('should return true to the right of a inner leading whitespace sensitive dangling marker open', () => {
       ast = toAugmentedAst('{% if cond %}<a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
 
       // first "a" tag is sensitive in this given context
       ast = toAugmentedAst('{% if cond %}<a><a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
 
       ast = toAugmentedAst('{% if cond %}{% else %}<a>{% endif %}');
-      expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.true;
       expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.1.children.0.name.0.value').to.eql('a');
@@ -388,19 +381,19 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return false to the right of a inner leading whitespace insensitive dangling marker open', () => {
       ast = toAugmentedAst('{% if cond %}<p>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
 
       // "a" tag becomes insensitive because of the 'p' tag open
       ast = toAugmentedAst('{% if cond %}<a><p>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
 
       ast = toAugmentedAst('{% if cond %}{% else %}<p>{% endif %}');
-      expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.false;
       expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerOpen');
       expectPath(ast, 'children.0.children.1.children.0.isTrailingWhitespaceSensitive').to.be.false;
@@ -408,19 +401,19 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return true to the right of a outer trailing whitespace sensitive dangling marker close', () => {
       ast = toAugmentedAst('{% if cond %}</a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
 
       // "a" tag would be sensitive
       ast = toAugmentedAst('{% if cond %}</a></a>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.1.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.1.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.1.isTrailingWhitespaceSensitive').to.be.true;
 
       ast = toAugmentedAst('{% if cond %}{% else %}</a>{% endif %}');
-      expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.true;
       expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.1.children.0.isTrailingWhitespaceSensitive').to.be.true;
@@ -428,36 +421,36 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
 
     it('should return false to the right of a outer trailing whitespace insensitive dangling marker close', () => {
       ast = toAugmentedAst('{% if cond %}</p>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
 
       // "a" tag becomes insensitive because of the 'p' tag close
       ast = toAugmentedAst('{% if cond %}</a></p>{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.0.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.0.children.0.name.0.value').to.eql('a');
       expectPath(ast, 'children.0.children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
 
       ast = toAugmentedAst('{% if cond %}{% else %}</p>{% endif %}');
-      expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+      expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
       expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.false;
       expectPath(ast, 'children.0.children.1.children.0.type').to.eql('HtmlDanglingMarkerClose');
       expectPath(ast, 'children.0.children.1.children.0.isTrailingWhitespaceSensitive').to.be.false;
     });
 
-    describe('Case: LiquidBranch', () => {
+    describe('Case: TwigBranch', () => {
       describe('Case: default branch', () => {
         it('should return the trailingWhitespaceSensitivty of its last child', () => {
           ast = toAugmentedAst('{% if cond %}<p><a>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.0.children.1.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.0.children.1.isTrailingWhitespaceSensitive').to.be
             .true;
 
           ast = toAugmentedAst('{% if cond %}<a><p>{% endif %}');
-          expectPath(ast, 'children.0.children.0.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.0.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.0.isTrailingWhitespaceSensitive').to.be.false;
           expectPath(ast, 'children.0.children.0.children.1.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.0.children.1.isTrailingWhitespaceSensitive').to.be
@@ -468,14 +461,14 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       describe('Case: other branches', () => {
         it('should return the trailingWhitespaceSensitivity of its last child', () => {
           ast = toAugmentedAst('{% if cond %}{% else %}<p><a>{% endif %}');
-          expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.true;
           expectPath(ast, 'children.0.children.1.children.1.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.1.children.1.isTrailingWhitespaceSensitive').to.be
             .true;
 
           ast = toAugmentedAst('{% if cond %}{% else %}<a><p>{% endif %}');
-          expectPath(ast, 'children.0.children.1.type').to.eql('LiquidBranch');
+          expectPath(ast, 'children.0.children.1.type').to.eql('TwigBranch');
           expectPath(ast, 'children.0.children.1.isTrailingWhitespaceSensitive').to.be.false;
           expectPath(ast, 'children.0.children.1.children.1.type').to.eql('HtmlDanglingMarkerOpen');
           expectPath(ast, 'children.0.children.1.children.1.isTrailingWhitespaceSensitive').to.be
@@ -486,37 +479,37 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
   });
 
   describe('Unit: hasDanglingWhitespace', () => {
-    it('should handle LiquidBranch tags properly', () => {
+    it('should handle TwigBranch tags properly', () => {
       ast = toAugmentedAst('{% if true %} {% endif %}');
       // The if tag itself is dangling if it only has one branch and it's empty
       expectPath(ast, 'children.0.hasDanglingWhitespace').to.be.true;
 
       // The default branch has dangling whitespace
-      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasDanglingWhitespace').to.be.true;
 
       // same goes for else tags
       ast = toAugmentedAst('{% if true %} {% else %} {% endif %}');
       expectPath(ast, 'children.0.hasDanglingWhitespace').to.be.false;
-      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasDanglingWhitespace').to.be.true;
-      expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.1.hasDanglingWhitespace').to.be.true;
 
       // reports false when branch is empty
       ast = toAugmentedAst('{% if true %}{% else %}{% endif %}');
       expectPath(ast, 'children.0.hasDanglingWhitespace').to.be.false;
-      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasDanglingWhitespace').to.be.false;
-      expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.1.type').to.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.1.hasDanglingWhitespace').to.be.false;
     });
 
-    it('should work for LiquidTags', () => {
-      ast = toAugmentedAst('{% form %} {% endform %}');
+    it('should work for TwigTags', () => {
+      ast = toAugmentedAst('{% block %} {% endblock %}');
       expectPath(ast, 'children.0.hasDanglingWhitespace').to.be.true;
 
-      ast = toAugmentedAst('{% form %}{% endform %}');
+      ast = toAugmentedAst('{% block %}{% endblock %}');
       expectPath(ast, 'children.0.hasDanglingWhitespace').to.be.false;
     });
 
@@ -540,12 +533,12 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
       expectPath(ast, 'children.0.isDanglingWhitespaceSensitive').to.be.false;
     });
 
-    it('should return true for LiquidBranch tags', () => {
+    it('should return true for TwigBranch tags', () => {
       ast = toAugmentedAst('{% if A %} {% endif %}');
       expectPath(ast, 'children.0.children.0.isDanglingWhitespaceSensitive').to.be.true;
     });
 
-    it('should return false for LiquidBranch tags that are whitespace stripped', () => {
+    it('should return false for TwigBranch tags that are whitespace stripped', () => {
       ast = toAugmentedAst('{% if A -%} {% endif %}');
       expectPath(ast, 'children.0.children.0.isDanglingWhitespaceSensitive').to.be.false;
       ast = toAugmentedAst('{% if A %} {%- endif %}');
@@ -562,58 +555,58 @@ describe('Module: augmentWithWhitespaceHelpers', () => {
   });
 
   describe('Unit: hasLeadingWhitespace', () => {
-    it('should return true for branched LiquidTag', () => {
+    it('should return true for branched TwigTag', () => {
       ast = toAugmentedAst('{% if A %} hello {% endif %}');
-      expectPath(ast, 'children.0.type').to.be.eql(NodeTypes.LiquidTag);
+      expectPath(ast, 'children.0.type').to.be.eql(NodeTypes.TwigTag);
       expectPath(ast, 'children.0.hasLeadingWhitespace').to.be.false;
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasLeadingWhitespace').to.be.true;
     });
 
-    it('should return the correct value for LiquidBranches', () => {
+    it('should return the correct value for TwigBranches', () => {
       ast = toAugmentedAst('{% if A %} hello{% else %} ok{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasLeadingWhitespace').to.be.true;
       expectPath(ast, 'children.0.children.1.hasLeadingWhitespace').to.be.false;
 
       ast = toAugmentedAst('{% if A %} {% else %}ok{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasLeadingWhitespace').to.be.true;
       expectPath(ast, 'children.0.children.1.hasLeadingWhitespace').to.be.true;
     });
   });
 
   describe('Unit: hasTrailingWhitespace', () => {
-    it('should return true for branched LiquidTag', () => {
+    it('should return true for branched TwigTag', () => {
       ast = toAugmentedAst('{% if A %} hello {% endif %}');
-      expectPath(ast, 'children.0.type').to.be.eql(NodeTypes.LiquidTag);
+      expectPath(ast, 'children.0.type').to.be.eql(NodeTypes.TwigTag);
       expectPath(ast, 'children.0.hasTrailingWhitespace').to.be.false;
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasTrailingWhitespace').to.be.true;
     });
 
-    it('should return the correct value for LiquidBranches', () => {
+    it('should return the correct value for TwigBranches', () => {
       ast = toAugmentedAst('{% if A %} hello{% else %}ok {% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasTrailingWhitespace').to.be.false;
       expectPath(ast, 'children.0.children.1.hasTrailingWhitespace').to.be.true;
 
       ast = toAugmentedAst('{% if A %} {% else %}ok{% endif %}');
-      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.LiquidBranch);
+      expectPath(ast, 'children.0.children.0.type').to.be.eql(NodeTypes.TwigBranch);
       expectPath(ast, 'children.0.children.0.hasTrailingWhitespace').to.be.true;
       expectPath(ast, 'children.0.children.1.hasTrailingWhitespace').to.be.false;
     });
   });
 
-  function toAugmentedAst(code: string, options: Partial<LiquidParserOptions> = {}) {
-    const ast = toLiquidHtmlAST(code);
+  function toAugmentedAst(code: string, options: Partial<TwigParserOptions> = {}) {
+    const ast = toTwigHtmlAST(code);
     options.originalText = ast.source;
-    options.locStart = (node: LiquidHtmlNode) => node.position.start;
-    options.locEnd = (node: LiquidHtmlNode) => node.position.end;
-    return preprocess(ast, options as LiquidParserOptions);
+    options.locStart = (node: TwigHtmlNode) => node.position.start;
+    options.locEnd = (node: TwigHtmlNode) => node.position.end;
+    return preprocess(ast, options as TwigParserOptions);
   }
 
-  function expectPath(ast: LiquidHtmlNode, path: string, message?: string) {
+  function expectPath(ast: TwigHtmlNode, path: string, message?: string) {
     return expect(deepGet(path.split('.'), ast), message);
   }
 });

@@ -1,12 +1,12 @@
 import * as AST from '~/parser/stage-2-ast';
-import { LiquidParserOptions, DocumentNode } from '~/types';
+import { TwigParserOptions, DocumentNode } from '~/types';
 import { AUGMENTATION_PIPELINE } from '~/printer/preprocess';
 
 // This is super hard to type check so I'll just magically assume
 // everything works.
 export function preprocess(
   ast: AST.DocumentNode,
-  options: LiquidParserOptions,
+  options: TwigParserOptions,
 ): DocumentNode {
   const augmentationPipeline = AUGMENTATION_PIPELINE.map((fn) =>
     fn.bind(null, options),

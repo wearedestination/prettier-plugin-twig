@@ -1,10 +1,10 @@
 import {
   AugmentedNode,
   Augment,
-  LiquidHtmlNode,
+  TwigHtmlNode,
   WithParent,
   WithSiblings,
-  isLiquidHtmlNode,
+  isTwigHtmlNode,
 } from '~/types';
 
 export function prev(node: AugmentedNode<WithParent>) {
@@ -35,7 +35,7 @@ function parentCollection(
       }
     }
 
-    if (isLiquidHtmlNode(parentValue) && parentValue === node) {
+    if (isTwigHtmlNode(parentValue) && parentValue === node) {
       return [];
     }
   }
@@ -45,8 +45,8 @@ function parentCollection(
 
 export const augmentWithSiblings: Augment<WithParent> = (_options, node) => {
   const augmentations: WithSiblings = {
-    next: next(node) as LiquidHtmlNode | undefined,
-    prev: prev(node) as LiquidHtmlNode | undefined,
+    next: next(node) as TwigHtmlNode | undefined,
+    prev: prev(node) as TwigHtmlNode | undefined,
   };
 
   Object.assign(node, augmentations);

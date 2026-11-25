@@ -15,33 +15,18 @@
 </div>
 
 <div>
-{% unless condition %}
+{% if condition %}
 <span>Hello world!</span>
-{% elsif other %}
+{% elseif other %}
   <span>{{ condition }}</span>
-{% endunless %}
-</div>
-
-It should indent when statements and their children
-<div>
-{% case pastry %}
-{% when 'oopsie' %}
-{% when 'croissant' %}
-Mmmm
-{% when 'muffin' %}
-Yea. Alright.
-{% when 'veggie' %}
-That's not a pastry!
-{% else %}
-What do you want?
-{% endcase %}
+{% endif %}
 </div>
 
 When there's a TextNode child, it should format the children as a paragraph
 <div>
 {% if a %}
 hello {{ world }}!
-{% elsif b %}
+{% elseif b %}
 {% if x %}Greetings{% else %}Hello{% endif %}, friend!
 {% endif %}
 </div>
@@ -52,7 +37,7 @@ line.
 {% if a %}
 <div>Hello</div>
 <div>content</div>
-{% elsif b %}
+{% elseif b %}
 {% if greeting %}
 <div>hello</div>
 {% endif %}
@@ -63,7 +48,7 @@ line.
 When there's a new line in the input, there should be a new line in the output.
 {% if a %}hello
 {% endif %}
-{% if a %}hello{% elsif b %}b{% else %}c
+{% if a %}hello{% elseif b %}b{% else %}c
 {% endif %}
 
 Deeply nested tags should break line

@@ -20,10 +20,6 @@ It should support all kinds of shit
 printWidth: 30
 {% if lower < some.variable and some.variable < upper and string contains "hi" or string == empty or nil or var.lookup %} hello {% endif %}
 
-It should support all kinds of shit (same but for unless)
-printWidth: 30
-{% unless lower < some.variable and some.variable < upper and string contains 'hi' or string == empty or nil or var.lookup %} hello {% endunless %}
-
 It should be idempotent
 {% if variable >= 1 %} {% endif %}
 
@@ -47,7 +43,7 @@ It should maintain at most 1 new line between the branches
   hello
 
 
-{% elsif true %}
+{% elseif true %}
   world
 
 
@@ -59,7 +55,7 @@ It should not maintain trailing newlines between last branch and parent node
 {% if true %}
   hello
 
-{% elsif true %}
+{% elseif true %}
   world
 
 {% else %}

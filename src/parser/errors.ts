@@ -6,7 +6,7 @@ interface LineColPosition {
   column: number;
 }
 
-export class LiquidHTMLCSTParsingError extends SyntaxError {
+export class TwigHTMLCSTParsingError extends SyntaxError {
   loc?: { start: LineColPosition; end: LineColPosition };
 
   constructor(ohm: MatchResult) {
@@ -37,7 +37,7 @@ export class LiquidHTMLCSTParsingError extends SyntaxError {
   }
 }
 
-export class LiquidHTMLASTParsingError extends SyntaxError {
+export class TwigHTMLASTParsingError extends SyntaxError {
   loc?: { start: LineColPosition; end: LineColPosition };
 
   constructor(

@@ -1,0 +1,69 @@
+It should pretty pring pure JS inside a js tag
+printWidth: 20
+embeddedSingleQuote: false
+{% js %}
+  function main() {
+    console.log(
+      "hello"
+    );
+  }
+  const x =
+    100 > 42
+      ? x
+      : y;
+{% endjs %}
+
+It should fallback to reindenting when it can't parse the source
+(e.g. because of Twig in JS)
+printWidth: 20
+{% js %}
+  function main(){console.log({{ drop }});}const x = 100 > 42 ? x : y;
+{% endjs %}
+
+It should reindent when it can't parse and change spaces to tabs with useTabs
+printWidth: 20
+useTabs: true
+{% js %}
+	function main(){
+	  console.log({{ drop }});
+	}
+	const x = 100 > 42 ? x : y;
+{% endjs %}
+
+It should respect embeddedSingleQuote
+embeddedSingleQuote: true
+{% js %}
+  console.log('hi');
+{% endjs %}
+
+It should not swallow content after a standalone tag
+{% js 'app.js' %}
+<p>hello</p>
+{% js %}
+  foo();
+{% endjs %}
+
+It should keep line comments on their own line
+{% js %}
+  // hi
+  foo();
+{% endjs %}
+
+It should not format Twig output as JS blocks
+{% js %}
+  {{ output }}
+{% endjs %}
+
+It should not reindent template literals next to Twig
+{% js %}
+  foo(`a
+     b`, {{ x }})
+{% endjs %}
+
+It should support the script tag
+{% script 'app.js' at 'bottom' %}
+<p>hello</p>
+{% script with { type: 'module' } %}
+  // hi
+  foo();
+{% endscript %}

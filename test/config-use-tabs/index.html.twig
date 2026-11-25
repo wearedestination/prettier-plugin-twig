@@ -19,7 +19,7 @@ It should not convert tabs to spaces inside "paste-as-is" docs
 	hello
 </pre>
 
-It should print pre-like tags without reindenting (LiquidRaw)
+It should print pre-like tags without reindenting (TwigRaw)
 <div>
 <div>
 {% raw %}
@@ -29,30 +29,12 @@ It should print pre-like tags without reindenting (LiquidRaw)
 </div>
 </div>
 
-It should not convert tabs to spaces inside "paste-as-is" docs (LiquidRaw)
+It should not convert tabs to spaces inside "paste-as-is" docs (TwigRaw)
 <div>
 {% raw %}
 	hello
 	hello
 {% endraw %}
-</div>
-
-It should print pre-like tags without reindenting (capture tag)
-<div>
-<div>
-{% capture var %}
-  hello
-  hello
-{% endcapture %}
-</div>
-</div>
-
-It should not convert tabs to spaces inside "paste-as-is" docs (capture tag)
-<div>
-{% capture var %}
-	hello
-	hello
-{% endcapture %}
 </div>
 
 It should print pre-like tags without reindenting (pre)

@@ -1,22 +1,21 @@
 import {
   HtmlSelfClosingElement,
-  LiquidHtmlNode,
+  TwigHtmlNode,
   NodeTypes,
   TextNode,
-  LiquidNode,
-  LiquidNodeTypes,
+  TwigNode,
+  TwigNodeTypes,
   HtmlNodeTypes,
   HtmlNode,
   HtmlVoidElement,
   HtmlComment,
   HtmlElement,
-  LiquidTag,
+  TwigTag,
   AttributeNode,
-  LiquidDrop,
+  TwigDrop,
   HtmlDanglingMarkerOpen,
   HtmlDanglingMarkerClose,
 } from '~/types';
-import { isEmpty } from '~/printer/utils/array';
 
 export function isScriptLikeTag(node: { type: NodeTypes }) {
   return node.type === NodeTypes.HtmlRawNode;
@@ -29,7 +28,7 @@ export function isPreLikeNode(node: { cssWhitespace: string }) {
 // A bit like self-closing except we distinguish between them.
 // Comments are also considered self-closing.
 export function hasNoCloseMarker(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): node is
   | HtmlComment
   | HtmlVoidElement
@@ -46,64 +45,51 @@ export function hasNoCloseMarker(
 }
 
 export function isHtmlDanglingMarkerOpen(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): node is HtmlDanglingMarkerOpen {
   return node.type === NodeTypes.HtmlDanglingMarkerOpen;
 }
 
 export function isHtmlDanglingMarkerClose(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): node is HtmlDanglingMarkerClose {
   return node.type === NodeTypes.HtmlDanglingMarkerClose;
 }
 
-export function isHtmlComment(node: LiquidHtmlNode): node is HtmlComment {
+export function isHtmlComment(node: TwigHtmlNode): node is HtmlComment {
   return node.type === NodeTypes.HtmlComment;
 }
 
 export function isSelfClosing(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): node is HtmlSelfClosingElement {
   return node.type === NodeTypes.HtmlSelfClosingElement;
 }
 
-export function isVoidElement(node: LiquidHtmlNode): node is HtmlVoidElement {
+export function isVoidElement(node: TwigHtmlNode): node is HtmlVoidElement {
   return node.type === NodeTypes.HtmlVoidElement;
 }
 
-export function isHtmlElement(node: LiquidHtmlNode): node is HtmlElement {
+export function isHtmlElement(node: TwigHtmlNode): node is HtmlElement {
   return node.type === NodeTypes.HtmlElement;
 }
 
 export function isTextLikeNode(
-  node: LiquidHtmlNode | undefined,
+  node: TwigHtmlNode | undefined,
 ): node is TextNode {
   return !!node && node.type === NodeTypes.TextNode;
 }
 
-export function isLiquidNode(
-  node: LiquidHtmlNode | undefined,
-): node is LiquidNode {
-  return !!node && LiquidNodeTypes.includes(node.type as any);
+export function isTwigNode(node: TwigHtmlNode | undefined): node is TwigNode {
+  return !!node && TwigNodeTypes.includes(node.type as any);
 }
 
-export function isMultilineLiquidTag(
-  node: LiquidHtmlNode | undefined,
-): node is LiquidTag {
-  return (
-    !!node &&
-    node.type === NodeTypes.LiquidTag &&
-    !!node.children &&
-    !isEmpty(node.children)
-  );
-}
-
-export function isHtmlNode(node: LiquidHtmlNode | undefined): node is HtmlNode {
+export function isHtmlNode(node: TwigHtmlNode | undefined): node is HtmlNode {
   return !!node && HtmlNodeTypes.includes(node.type as any);
 }
 
 export function isAttributeNode(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): node is AttributeNode & { parentNode: HtmlNode } {
   return (
     isHtmlNode(node.parentNode) &&
@@ -112,16 +98,16 @@ export function isAttributeNode(
   );
 }
 
-export function hasNonTextChild(node: LiquidHtmlNode) {
+export function hasNonTextChild(node: TwigHtmlNode) {
   return (
     (node as any).children &&
     (node as any).children.some(
-      (child: LiquidHtmlNode) => child.type !== NodeTypes.TextNode,
+      (child: TwigHtmlNode) => child.type !== NodeTypes.TextNode,
     )
   );
 }
 
-export function shouldPreserveContent(node: LiquidHtmlNode) {
+export function shouldPreserveContent(node: TwigHtmlNode) {
   // // unterminated node in ie conditional comment
   // // e.g. <!--[if lt IE 9]><html><![endif]-->
   // if (
@@ -148,7 +134,7 @@ export function shouldPreserveContent(node: LiquidHtmlNode) {
 }
 
 export function isPrettierIgnoreHtmlNode(
-  node: LiquidHtmlNode | undefined,
+  node: TwigHtmlNode | undefined,
 ): node is HtmlComment {
   return (
     !!node &&
@@ -158,23 +144,23 @@ export function isPrettierIgnoreHtmlNode(
 }
 
 export function isPrettierIgnoreTwigNode(
-  node: LiquidHtmlNode | undefined,
-): node is LiquidTag {
+  node: TwigHtmlNode | undefined,
+): node is TwigTag {
   return (
     !!node &&
-    node.type === NodeTypes.LiquidTag &&
+    node.type === NodeTypes.TwigTag &&
     node.name === 'twig' &&
     /^\s*prettier-ignore(?=\s|$)/m.test(node.markup)
   );
 }
 
 export function isPrettierIgnoreNode(
-  node: LiquidHtmlNode | undefined,
-): node is HtmlComment | LiquidTag {
+  node: TwigHtmlNode | undefined,
+): node is HtmlComment | TwigTag {
   return isPrettierIgnoreTwigNode(node) || isPrettierIgnoreHtmlNode(node);
 }
 
-export function hasPrettierIgnore(node: LiquidHtmlNode) {
+export function hasPrettierIgnore(node: TwigHtmlNode) {
   return isPrettierIgnoreNode(node) || isPrettierIgnoreNode(node.prev);
 }
 
@@ -206,21 +192,21 @@ function getPrettierIgnoreAttributeCommentData(value: string): boolean {
 }
 
 export function isPrettierIgnoreAttributeNode(
-  node: LiquidHtmlNode | undefined,
+  node: TwigHtmlNode | undefined,
 ): boolean {
   if (!node) return false;
   if (node.type === NodeTypes.HtmlComment) {
     return getPrettierIgnoreAttributeCommentData(node.body);
   }
 
-  if (node.type === NodeTypes.LiquidTag && node.name === 'twig') {
+  if (node.type === NodeTypes.TwigTag && node.name === 'twig') {
     return getPrettierIgnoreAttributeCommentData(node.markup);
   }
 
   return false;
 }
 
-export function forceNextEmptyLine(node: LiquidHtmlNode | undefined) {
+export function forceNextEmptyLine(node: TwigHtmlNode | undefined) {
   if (!node) return false;
   if (!node.next) return false;
   const source = node.source;
@@ -235,7 +221,7 @@ export function forceNextEmptyLine(node: LiquidHtmlNode | undefined) {
 }
 
 /** firstChild leadingSpaces and lastChild trailingSpaces */
-export function forceBreakContent(node: LiquidHtmlNode) {
+export function forceBreakContent(node: TwigHtmlNode) {
   return (
     forceBreakChildren(node) ||
     (node.type === NodeTypes.HtmlElement &&
@@ -252,7 +238,7 @@ export function forceBreakContent(node: LiquidHtmlNode) {
 }
 
 /** spaces between children */
-export function forceBreakChildren(node: LiquidHtmlNode) {
+export function forceBreakChildren(node: TwigHtmlNode) {
   return (
     node.type === NodeTypes.HtmlElement &&
     node.children.length > 0 &&
@@ -261,14 +247,14 @@ export function forceBreakChildren(node: LiquidHtmlNode) {
   );
 }
 
-export function preferHardlineAsSurroundingSpaces(node: LiquidHtmlNode) {
+export function preferHardlineAsSurroundingSpaces(node: TwigHtmlNode) {
   switch (node.type) {
     // case 'ieConditionalComment':
     case NodeTypes.HtmlComment:
       return true;
     case NodeTypes.HtmlElement:
       return isTagNameIncluded(['script', 'select'], node.name);
-    case NodeTypes.LiquidTag:
+    case NodeTypes.TwigTag:
       if (
         (node.prev && isTextLikeNode(node.prev)) ||
         (node.next && isTextLikeNode(node.next))
@@ -281,21 +267,21 @@ export function preferHardlineAsSurroundingSpaces(node: LiquidHtmlNode) {
   return false;
 }
 
-export function preferHardlineAsLeadingSpaces(node: LiquidHtmlNode) {
+export function preferHardlineAsLeadingSpaces(node: TwigHtmlNode) {
   return (
     preferHardlineAsSurroundingSpaces(node) ||
-    (isLiquidNode(node) && node.prev && isLiquidNode(node.prev)) ||
+    (isTwigNode(node) && node.prev && isTwigNode(node.prev)) ||
     (node.prev && preferHardlineAsTrailingSpaces(node.prev)) ||
     hasSurroundingLineBreak(node)
   );
 }
 
-export function preferHardlineAsTrailingSpaces(node: LiquidHtmlNode) {
+export function preferHardlineAsTrailingSpaces(node: TwigHtmlNode) {
   return (
     preferHardlineAsSurroundingSpaces(node) ||
-    (isLiquidNode(node) &&
+    (isTwigNode(node) &&
       node.next &&
-      (isLiquidNode(node.next) || isHtmlNode(node.next))) ||
+      (isTwigNode(node.next) || isHtmlNode(node.next))) ||
     (node.type === NodeTypes.HtmlElement &&
       isTagNameIncluded(['br'], node.name)) ||
     hasSurroundingLineBreak(node)
@@ -303,28 +289,28 @@ export function preferHardlineAsTrailingSpaces(node: LiquidHtmlNode) {
 }
 
 export function hasMeaningfulLackOfLeadingWhitespace(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): boolean {
   return node.isLeadingWhitespaceSensitive && !node.hasLeadingWhitespace;
 }
 
 export function hasMeaningfulLackOfTrailingWhitespace(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): boolean {
   return node.isTrailingWhitespaceSensitive && !node.hasTrailingWhitespace;
 }
 
 export function hasMeaningfulLackOfDanglingWhitespace(
-  node: LiquidHtmlNode,
+  node: TwigHtmlNode,
 ): boolean {
   return node.isDanglingWhitespaceSensitive && !node.hasDanglingWhitespace;
 }
 
-function hasSurroundingLineBreak(node: LiquidHtmlNode) {
+function hasSurroundingLineBreak(node: TwigHtmlNode) {
   return hasLeadingLineBreak(node) && hasTrailingLineBreak(node);
 }
 
-function hasLeadingLineBreak(node: LiquidHtmlNode) {
+function hasLeadingLineBreak(node: TwigHtmlNode) {
   if (node.type === NodeTypes.Document) return false;
 
   return (
@@ -341,7 +327,7 @@ function hasLeadingLineBreak(node: LiquidHtmlNode) {
   );
 }
 
-function hasTrailingLineBreak(node: LiquidHtmlNode) {
+function hasTrailingLineBreak(node: TwigHtmlNode) {
   if (node.type === NodeTypes.Document) return false;
   return (
     node.hasTrailingWhitespace &&
@@ -362,13 +348,13 @@ function hasLineBreakInRange(source: string, start: number, end: number) {
   return index !== -1 && index < end;
 }
 
-export function getLastDescendant(node: LiquidHtmlNode): LiquidHtmlNode {
+export function getLastDescendant(node: TwigHtmlNode): TwigHtmlNode {
   return node.lastChild ? getLastDescendant(node.lastChild) : node;
 }
 
 function isTagNameIncluded(
   collection: string[],
-  name: (TextNode | LiquidDrop)[],
+  name: (TextNode | TwigDrop)[],
 ): boolean {
   if (name.length !== 1 || name[0].type !== NodeTypes.TextNode) return false;
   return collection.includes(name[0].value);

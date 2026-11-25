@@ -1,13 +1,12 @@
-import {
-  LiquidAstPath,
-  LiquidHtmlNode,
-  LiquidParserOptions,
-  Position,
-} from '~/types';
+import { TwigAstPath, TwigParserOptions, Position } from '~/types';
 
 export function isWhitespace(source: string, loc: number): boolean {
   if (loc < 0 || loc >= source.length) return false;
   return !!source[loc].match(/\s/);
+}
+
+export function hasTwigToken(source: string): boolean {
+  return /\{[{%#]/.test(source);
 }
 
 export const trim = (x: string) => x.trim();
@@ -39,8 +38,8 @@ export function reindent(lines: string[], skipFirst = false): string[] {
 }
 
 export function originallyHadLineBreaks(
-  path: LiquidAstPath,
-  { locStart, locEnd }: LiquidParserOptions,
+  path: TwigAstPath,
+  { locStart, locEnd }: TwigParserOptions,
 ): boolean {
   const node = path.getValue();
   return hasLineBreakInRange(node.source, locStart(node), locEnd(node));

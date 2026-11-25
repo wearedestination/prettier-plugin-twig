@@ -1,3 +1,32 @@
+4.0.0 / Unreleased
+==================
+
+## Breaking changes
+
+* Remove the `liquid-html` parser alias — use `twig` (or drop the `parser` setting and let Prettier infer it from the `.twig` extension)
+* Remove the deprecated `liquidSingleQuote` option — use `twigSingleQuote`
+* Remove support for tags that only exist in Liquid: `assign`, `break`, `capture`, `case`/`when`, `comment`, `continue`, `cycle`, `decrement`, `echo`, `elsif`, `form`, `ifchanged`, `increment`, `layout`, `liquid`, `render`, `section`, `sections`, `tablerow` and `unless`. They are now formatted like any other unrecognised tag, so their contents are no longer indented (or, for `comment`, left unparsed)
+* Replace the Shopify raw tags `javascript`, `schema` and `stylesheet` with `js`, `script`, `css` and `verbatim`. The Shopify tags are now formatted like any other unrecognised tag, including their contents
+* Remove the `indentSchema` option, which only applied to `{% schema %}`
+
+## Features
+
+* Format the contents of `{% js %}`, `{% script %}` and `{% css %}` as JavaScript and CSS, and leave the contents of `{% verbatim %}` untouched. Contents that use Twig are only reindented
+
+## Fixes
+
+* Only reindent JavaScript and TypeScript in `<script>` elements when it contains Twig. `{{ output }}` could be rewritten as nested JavaScript blocks, breaking the template
+* Do not add blank lines around unparsed scripts containing template literals every time they are formatted
+* Keep the arguments of `{% style %}` and `{% raw %}`, e.g. `{% style 'theme.css' at 'head' %}`, instead of removing them
+* Print the whitespace control of a raw tag's closing delimiter as written, instead of copying it from the opening one
+* Leave every stylesheet that contains Twig unparsed. Some were formatted as plain CSS depending on the stylesheets before them
+* Craft CMS `{% switch %}`/`{% case %}` blocks no longer fail to parse
+
+## Notes
+
+* AST node types, the AST format and the published grammar file are named after Twig (e.g. `LiquidDrop` is now `TwigDrop`, `liquid-html-ast` is now `twig-html-ast`, `grammar/liquid-html.ohm` is now `grammar/twig-html.ohm`). Only affects code that inspects the AST or imports the plugin's internals
+
+
 3.1.0 / 2026-08-13
 ==================
 
