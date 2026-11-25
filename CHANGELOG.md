@@ -20,6 +20,7 @@
 * Keep the arguments of `{% style %}` and `{% raw %}`, e.g. `{% style 'theme.css' at 'head' %}`, instead of removing them
 * Print the whitespace control of a raw tag's closing delimiter as written, instead of copying it from the opening one
 * Leave every stylesheet that contains Twig unparsed. Some were formatted as plain CSS depending on the stylesheets before them
+* Parse `{# #}` comments that come after text or inside attribute names and values. Their contents were treated as template code, which could fail to parse or reflow a multi-line comment into the text before it
 * Craft CMS `{% switch %}`/`{% case %}` blocks no longer fail to parse
 
 ## Notes

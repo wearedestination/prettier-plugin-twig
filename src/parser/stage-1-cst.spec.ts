@@ -738,11 +738,37 @@ describe('Unit: Stage 1 (CST)', () => {
       }
     });
 
+    it('should parse inline comments in attributes', () => {
+      cst = toTwigHtmlCST(`<a b-{# it's #}c=d{# "e" #}f g="h {# {% if i %} #}" {# j #}k>`);
+      expectPath(cst, '0.attrList.length').to.eql(4);
+      expectPath(cst, '0.attrList.0.type').to.eql('AttrUnquoted');
+      expectPath(cst, '0.attrList.0.name.1.name').to.eql('twig');
+      expectPath(cst, '0.attrList.0.name.1.markup').to.eql("it's");
+      expectPath(cst, '0.attrList.0.value.1.name').to.eql('twig');
+      expectPath(cst, '0.attrList.0.value.1.markup').to.eql('"e"');
+      expectPath(cst, '0.attrList.1.type').to.eql('AttrDoubleQuoted');
+      expectPath(cst, '0.attrList.1.value.1.name').to.eql('twig');
+      expectPath(cst, '0.attrList.1.value.1.markup').to.eql('{% if i %}');
+      expectPath(cst, '0.attrList.2.type').to.eql('TwigTag');
+      expectPath(cst, '0.attrList.3.type').to.eql('AttrEmpty');
+    });
+
     it('should parse inline comments', () => {
       cst = toTwigHtmlCST('{# hello world \n # hi #}');
       expectPath(cst, '0.type').to.eql('TwigTag');
       expectPath(cst, '0.name').to.eql('twig');
       expectPath(cst, '0.markup').to.eql('hello world \n # hi');
+    });
+
+    it('should parse inline comments that follow text', () => {
+      cst = toTwigHtmlCST('hello {# {% if x %} {{ y }} #} world');
+      expectPath(cst, '0.type').to.eql('TextNode');
+      expectPath(cst, '0.value').to.eql('hello');
+      expectPath(cst, '1.type').to.eql('TwigTag');
+      expectPath(cst, '1.name').to.eql('twig');
+      expectPath(cst, '1.markup').to.eql('{% if x %} {{ y }}');
+      expectPath(cst, '2.type').to.eql('TextNode');
+      expectPath(cst, '2.value').to.eql('world');
     });
   });
 
@@ -772,6 +798,17 @@ describe('Unit: Stage 1 (CST)', () => {
       expectPath(cst, '0.type').to.eql('TwigTag');
       expectPath(cst, '0.name').to.eql('twig');
       expectPath(cst, '0.markup').to.eql('hello world \n # hi');
+    });
+
+    it('should parse inline comments that follow text', () => {
+      cst = toTwigCST('hello {# {% if x %} {{ y }} #} world');
+      expectPath(cst, '0.type').to.eql('TextNode');
+      expectPath(cst, '0.value').to.eql('hello');
+      expectPath(cst, '1.type').to.eql('TwigTag');
+      expectPath(cst, '1.name').to.eql('twig');
+      expectPath(cst, '1.markup').to.eql('{% if x %} {{ y }}');
+      expectPath(cst, '2.type').to.eql('TextNode');
+      expectPath(cst, '2.value').to.eql('world');
     });
   });
 

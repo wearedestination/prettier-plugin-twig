@@ -136,7 +136,7 @@ export interface ConcreteHtmlTagClose
 }
 
 export interface ConcreteAttributeNodeBase<T> extends ConcreteBasicNode<T> {
-  name: (ConcreteTwigDrop | ConcreteTextNode)[];
+  name: (ConcreteTwigDrop | ConcreteTwigTagBaseCase | ConcreteTextNode)[];
   value: (ConcreteTwigNode | ConcreteTextNode)[];
 }
 
@@ -155,7 +155,7 @@ export interface ConcreteAttrUnquoted
   extends ConcreteAttributeNodeBase<ConcreteNodeTypes.AttrUnquoted> {}
 export interface ConcreteAttrEmpty
   extends ConcreteBasicNode<ConcreteNodeTypes.AttrEmpty> {
-  name: (ConcreteTwigDrop | ConcreteTextNode)[];
+  name: (ConcreteTwigDrop | ConcreteTwigTagBaseCase | ConcreteTextNode)[];
 }
 
 export type ConcreteTwigNode =

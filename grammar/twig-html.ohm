@@ -25,7 +25,10 @@ Helpers {
 
 Twig <: Helpers {
   Node := (twigNode | TextNode)*
-  openControl := "{{" | "{%"
+  openControl := "{{" | "{%" | "{#"
+  // Inside of an expression, "{#" does not open a comment. It can be part of a
+  // string: {{ "{#{id}}" }} is a brace followed by an interpolation.
+  openControlInExpression = "{{" | "{%"
   endOfTagName = &("-%}" | "-}}" | "~%}" | "~}}" | "%}" | "}}")
   whitespaceControl = "-" | "~"
   endOfVarName = ~identifierCharacter
@@ -122,13 +125,13 @@ Twig <: Helpers {
   twigDropBracketedChar =
     | twigDropQuoted
     | twigDropBracketed
-    | (~("}" | "]" | ")" | openControl) any)
+    | (~("}" | "]" | ")" | openControlInExpression) any)
   // A string may legitimately contain "}}", but never an unescaped tag opener —
   // the lookahead keeps an unterminated quote (`{{ it's }}`) from swallowing the
   // rest of the document while hunting for a closing quote.
   twigDropQuoted =
-    | "'" (~("'" | openControl) any)* "'"
-    | "\"" (~("\"" | openControl) any)* "\""
+    | "'" (~("'" | openControlInExpression) any)* "'"
+    | "\"" (~("\"" | openControlInExpression) any)* "\""
   twigInlineComment = "{#" whitespaceControl? space? twigTagMarkup whitespaceControl? "#}"
 
   twigRawTag =
@@ -237,6 +240,7 @@ Twig <: Helpers {
 TwigHTML <: Twig {
   Node := yamlFrontmatter? (HtmlNode | twigNode | TextNode)*
   openControl += "<"
+  openControlInExpression += "<"
 
   yamlFrontmatter =
     "---" newline anyExceptStar<"---"> "---" newline
@@ -310,17 +314,17 @@ TwigHTML <: Twig {
   AttrSingleQuoted = attrName "=" singleQuote #(attrSingleQuotedValue singleQuote)
   AttrDoubleQuoted = attrName "=" doubleQuote #(attrDoubleQuotedValue doubleQuote)
 
-  attrName = (twigDrop | attrNameTextNode)+
+  attrName = (twigDrop | twigInlineComment | attrNameTextNode)+
 
   // https://html.spec.whatwg.org/#attributes-2
-  attrNameTextNode = anyExceptPlus<(space | quotes | "=" | ">" | "/>" | "{{" | "{%" | controls | noncharacters)>
-  attrUnquotedValue = (twigDrop | attrUnquotedTextNode)*
+  attrNameTextNode = anyExceptPlus<(space | quotes | "=" | ">" | "/>" | "{{" | "{%" | "{#" | controls | noncharacters)>
+  attrUnquotedValue = (twigDrop | twigInlineComment | attrUnquotedTextNode)*
   attrSingleQuotedValue = (twigNode | attrSingleQuotedTextNode)*
   attrDoubleQuotedValue = (twigNode | attrDoubleQuotedTextNode)*
 
-  attrUnquotedTextNode = anyExceptPlus<(space | quotes | "=" | "<" | ">" | "`" | "{{" | "{%")>
-  attrSingleQuotedTextNode = anyExceptPlus<(singleQuote | "{{" | "{%")>
-  attrDoubleQuotedTextNode = anyExceptPlus<(doubleQuote | "{{" | "{%")>
+  attrUnquotedTextNode = anyExceptPlus<(space | quotes | "=" | "<" | ">" | "`" | "{{" | "{%" | "{#")>
+  attrSingleQuotedTextNode = anyExceptPlus<(singleQuote | "{{" | "{%" | "{#")>
+  attrDoubleQuotedTextNode = anyExceptPlus<(doubleQuote | "{{" | "{%" | "{#")>
 
   quotes = singleQuote | doubleQuote
 

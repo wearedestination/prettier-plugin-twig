@@ -28,6 +28,10 @@ describe('Unit: twigHtmlGrammar', () => {
         expectMatchSucceeded(`{%- else-%}`).to.be.true;
         expectMatchSucceeded(`{%- verbatim-%}{% endverbatim %}`).to.be.true;
         expectMatchSucceeded(`{# a comment #}`).to.be.true;
+        expectMatchSucceeded(`text {# a comment #} text`).to.be.true;
+        expectMatchSucceeded(`text {# an unclosed comment`).to.be.false;
+        expectMatchSucceeded(`<script>var a = "{#";</script>`).to.be.true;
+        expectMatchSucceeded(`{{ "{#{x}}" }}`).to.be.true;
         expectMatchSucceeded(`{%- js -%}{% endjs %}`).to.be.true;
         expectMatchSucceeded(`{%- include 'layout' -%}`).to.be.true;
         expectMatchSucceeded(`{% include 'layout' with variables %}`).to.be.true;
