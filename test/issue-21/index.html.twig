@@ -3,6 +3,7 @@ singleQuote: true
 <div class="{{ foo('a') }}"></div>
 
 It should use the opposite quote when the preferred one appears inside a twig drop
+twigSingleQuote: false
 <div class="{{ foo("a") }}"></div>
 
 It should use the opposite quote when the preferred one appears inside a twig tag
@@ -11,13 +12,13 @@ singleQuote: true
 
 It should keep the original double quotes when the value contains both quote characters
 singleQuote: true
-<div class="{{ foo('a', "b") }}"></div>
+<div class="{{ foo('a', "it's") }}"></div>
 
 It should keep the original single quotes when the value contains both quote characters
-<div class='{{ foo('a', "b") }}'></div>
+<div class='{{ foo('a', "it's") }}'></div>
 
 It should use the preferred quote for unquoted values that contain both quote characters
-<div id={{ foo('a', "b") }}></div>
+<div id={{ foo('a', "it's") }}></div>
 
 It should not introduce a conflicting quote inside verbatim blocks
 singleQuote: true

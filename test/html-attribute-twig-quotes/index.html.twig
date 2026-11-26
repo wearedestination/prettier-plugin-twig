@@ -1,0 +1,33 @@
+It should convert Twig strings inside a double-quoted attribute to single quotes
+<img src="{{ asset("images/logo.png") }}" alt="Logo">
+
+It should convert Twig strings inside a single-quoted attribute and switch the attribute to double quotes
+<img src='{{ asset("images/logo.png") }}' alt="Logo">
+
+It should convert nested function call strings
+<img src='{{ absolute_url(asset("images/header.png")) }}'>
+
+It should convert strings in tags inside attributes
+<div class="card {% if active == "yes" %}card--active{% endif %}"></div>
+
+It should convert strings in several drops inside one attribute
+<a href="{{ path("page", { slug: "about" }) }}#{{ anchor ?? "top" }}">About</a>
+
+It should keep double quotes for strings containing single quotes
+<img alt="{{ "it's"|trans }}">
+
+It should keep double quotes for interpolated strings
+<a href='{{ "#{base}/page" }}'>Page</a>
+
+It should leave strings in Twig comments inside attributes untouched
+<div class="a {# "comment" #} b"></div>
+
+It should leave text outside Twig untouched
+<div data-json='{"a": "b"}'></div>
+
+It should convert to double quotes when twigSingleQuote is false
+twigSingleQuote: false
+<img src="{{ asset('images/logo.png') }}" alt="Logo">
+
+It should keep Twig string quotes when converting them would conflict with quotes in the text
+<div title='Say "hi" {{ "x" }}'></div>
