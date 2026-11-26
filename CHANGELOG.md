@@ -1,3 +1,11 @@
+4.0.1 / 2026-11-26
+==================
+
+## Fixes
+
+* Applied `twigSingleQuote` to the strings in `{{ … }}` and `{% … %}` inside HTML attribute values, e.g. `<img src="{{ asset("logo.png") }}">` is now formatted as `<img src="{{ asset('logo.png') }}">` instead of `<img src='{{ asset("logo.png") }}'>`. A string keeps its quotes when converting them would leave the attribute value with both quote characters [#30](https://github.com/wearedestination/prettier-plugin-twig/pull/30)
+
+
 4.0.0 / 2026-11-25
 ==================
 
