@@ -28,3 +28,6 @@ It should leave text outside Twig untouched
 It should convert to double quotes when twigSingleQuote is false
 twigSingleQuote: false
 <img src="{{ asset('images/logo.png') }}" alt="Logo">
+
+It should keep Twig string quotes when converting them would conflict with quotes in the text
+<div title='Say "hi" {{ "x" }}'></div>

@@ -160,6 +160,10 @@ function chooseAttributeQuote(
   }
 }
 
+function hasBothQuotes(value: string): boolean {
+  return value.includes(`'`) && value.includes(`"`);
+}
+
 function printAttribute<
   T extends Extract<TwigHtmlNode, { attributePosition: Position }>,
 >(path: AstPath<T>, options: TwigParserOptions, print: TwigPrinter): Doc {
@@ -191,10 +195,18 @@ function printAttribute<
   // Anyway, for that reason ^, for now I'll just paste in what we have in
   // the source. It's too hard to get right.
 
-  const value = transformTwigStringQuotesInText(
-    node.source.slice(node.attributePosition.start, node.attributePosition.end),
+  const source = node.source.slice(
+    node.attributePosition.start,
+    node.attributePosition.end,
+  );
+  const transformed = transformTwigStringQuotesInText(
+    source,
     options.twigSingleQuote,
   );
+  // Converting Twig string quotes must not leave the value with both quote
+  // characters when the source had only one, or no delimiter could wrap it.
+  const value =
+    hasBothQuotes(transformed) && !hasBothQuotes(source) ? source : transformed;
   // We print `value` as in the source — apart from the quotes of Twig string
   // literals — so the delimiter has to be chosen against that entire string,
   // not just the text-like parts of it. A quote inside `{{ … }}` closes the
