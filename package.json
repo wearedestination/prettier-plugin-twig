@@ -41,8 +41,8 @@
     "prepare": "husky install",
     "prerelease": "scripts/prerelease",
     "prettier": "prettier --plugin ./dist/index.js --parser=twig --ignore-path=.prettierignore",
-    "test": "mocha '{src,test}/**/*.spec.ts'",
-    "test:idempotence": "cross-env TEST_IDEMPOTENCE=true node_modules/.bin/mocha 'test/**/*.spec.ts'",
+    "test": "mocha \"{src,test}/**/*.spec.ts\"",
+    "test:idempotence": "cross-env TEST_IDEMPOTENCE=true node_modules/.bin/mocha \"test/**/*.spec.ts\"",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
