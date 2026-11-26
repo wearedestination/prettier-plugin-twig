@@ -1,9 +1,9 @@
 import { Plugin, SupportLanguage, SupportOptions } from 'prettier';
-import { parsers, twigLanguageName } from '~/parser';
-import { printers } from '~/printer';
+import { parsers as twigParsers, twigLanguageName } from '~/parser';
+import { printers as twigPrinters } from '~/printer';
 import { TwigHtmlNode } from '~/types';
 
-const languages: SupportLanguage[] = [
+export const languages: SupportLanguage[] = [
   {
     name: 'Twig',
     parsers: [twigLanguageName],
@@ -12,7 +12,7 @@ const languages: SupportLanguage[] = [
   },
 ];
 
-const options: SupportOptions = {
+export const options: SupportOptions = {
   twigSingleQuote: {
     type: 'boolean',
     category: 'TWIG',
@@ -35,16 +35,20 @@ const options: SupportOptions = {
   },
 };
 
-const defaultOptions = {
+export const defaultOptions = {
   printWidth: 120,
 };
 
+export const parsers = twigParsers as Plugin['parsers'];
+
+export const printers = twigPrinters as any;
+
 const plugin: Plugin<TwigHtmlNode> = {
   languages,
-  parsers: parsers as Plugin['parsers'],
-  printers: printers as any,
+  parsers,
+  printers,
   options,
   defaultOptions,
 };
 
-export = plugin;
+export default plugin;

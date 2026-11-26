@@ -1,3 +1,11 @@
+4.1.0 / 2026-11-26
+==================
+
+## Features
+
+* Exported `languages`, `parsers`, `printers`, `options` and `defaultOptions` as named exports, so ES modules can load the plugin with `import * as plugin from '@destination/prettier-plugin-twig'`. The plugin object is also the default export, so `require('@destination/prettier-plugin-twig')`, `require(…).default` and `import plugin from …` all work [#33](https://github.com/wearedestination/prettier-plugin-twig/pull/33)
+
+
 4.0.1 / 2026-11-26
 ==================
 
