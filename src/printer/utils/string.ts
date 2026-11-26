@@ -173,3 +173,79 @@ export function transformStringQuotes(
   }
   return result;
 }
+
+const twigDelimiters: Record<string, string> = { '{{': '}}', '{%': '%}' };
+
+/**
+ * Applies transformStringQuotes to the markup of every `{{ … }}` and
+ * `{% … %}` inside `text`, leaving the text around them and `{# … #}`
+ * comments untouched.
+ *
+ * Used for HTML attribute values, which are printed from source rather than
+ * through the Twig node printers.
+ */
+export function transformTwigStringQuotesInText(
+  text: string,
+  twigSingleQuote: boolean,
+): string {
+  let result = '';
+  let i = 0;
+  while (i < text.length) {
+    const opener = text.slice(i, i + 2);
+
+    if (opener === '{#') {
+      const end = text.indexOf('#}', i + 2);
+      const next = end === -1 ? text.length : end + 2;
+      result += text.slice(i, next);
+      i = next;
+      continue;
+    }
+
+    const closer = twigDelimiters[opener];
+    if (!closer) {
+      result += text[i];
+      i++;
+      continue;
+    }
+
+    const end = findTwigMarkupEnd(text, i + 2, closer);
+    if (end === -1) {
+      result += text.slice(i);
+      break;
+    }
+
+    result +=
+      opener +
+      transformStringQuotes(text.slice(i + 2, end), twigSingleQuote) +
+      closer;
+    i = end + 2;
+  }
+  return result;
+}
+
+/**
+ * Returns the index of the `closer` that ends the Twig markup starting at
+ * `start`, or -1 if there isn't one. Delimiter-like characters inside string
+ * literals and hash/array literals don't count.
+ */
+function findTwigMarkupEnd(
+  text: string,
+  start: number,
+  closer: string,
+): number {
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (char === "'" || char === '"') {
+      i = findStringEnd(text, i);
+      if (i === -1) return -1;
+    } else if (depth === 0 && text.startsWith(closer, i)) {
+      return i;
+    } else if (char === '{' || char === '[' || char === '(') {
+      depth++;
+    } else if (char === '}' || char === ']' || char === ')') {
+      depth = Math.max(0, depth - 1);
+    }
+  }
+  return -1;
+}

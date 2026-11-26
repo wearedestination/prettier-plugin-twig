@@ -37,6 +37,7 @@ import {
   hasLineBreakInRange,
   isEmpty,
   reindent,
+  transformTwigStringQuotesInText,
 } from '~/printer/utils';
 import { printElement } from '~/printer/print/element';
 import {
@@ -190,14 +191,14 @@ function printAttribute<
   // Anyway, for that reason ^, for now I'll just paste in what we have in
   // the source. It's too hard to get right.
 
-  const value = node.source.slice(
-    node.attributePosition.start,
-    node.attributePosition.end,
+  const value = transformTwigStringQuotesInText(
+    node.source.slice(node.attributePosition.start, node.attributePosition.end),
+    options.twigSingleQuote,
   );
-  // We print `value` verbatim — Twig drops and tags included — so the
-  // delimiter has to be chosen against that entire string, not just the
-  // text-like parts of it. A quote inside `{{ … }}` closes the attribute in
-  // any HTML parser that reads the template without rendering it.
+  // We print `value` as in the source — apart from the quotes of Twig string
+  // literals — so the delimiter has to be chosen against that entire string,
+  // not just the text-like parts of it. A quote inside `{{ … }}` closes the
+  // attribute in any HTML parser that reads the template without rendering it.
   const quote = chooseAttributeQuote(node, value, options);
 
   return [
